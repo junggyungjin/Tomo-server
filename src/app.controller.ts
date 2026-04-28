@@ -12,7 +12,7 @@ export class AppController {
 
   @Get('tomo')
   getTomo(): string {
-    return "tomo 백엔드 정복 완료!"
+    return this.appService.getTomo();
   }
 
 }
