@@ -12,9 +12,13 @@ datasource db {
 }
 
 model User {
-  id Int @id @default(autoincrement()) // PK (자동 증가)
-  email String @unique                 // 이메일 (중복 불가)
-  password String                      // 비밀번호
-  nickname String                      // 닉네임
-  createdAt DateTime @default(now())   // 가입일 (자동 생성)
+  id          String   @id @default(uuid()) // PK (UUID)
+  provider    String                       // 가입 경로(소셜로그인)
+  providerId  String                        // 해당 소셜 플랫폼에서 넘겨주는 유저의 고유 식별값
+  email       String?                       // 이메일 (소셜 간 이메일 중복 허용)
+  nickname    String                        // 닉네임 (닉네임은 앱 특성상 중복 가능)
+  handle      String   @unique              // 다른 유저가 검색할때 고유 핸들
+  nationality String
+  createdAt   DateTime @default(now())      // 가입일 (자동 생성)
+  @@unique([provider, providerId])
 }
