@@ -39,4 +39,12 @@ export class UserPersistenceAdapter implements UserRepositoryPort {
         });
         return foundData ? UserMapper.toDomain(foundData) : null;
     }
+
+    async findByHandle(handle: string): Promise<User | null> {
+        // Prisma 스키마에서 handle 필드는 @unique 이므로 findUnique를 사용합니다.
+        const foundData = await this.prisma.user.findUnique({
+            where: { handle },
+        });
+        return foundData ? UserMapper.toDomain(foundData) : null;
+    }
 }

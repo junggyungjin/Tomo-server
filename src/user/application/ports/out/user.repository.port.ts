@@ -29,4 +29,6 @@ export interface UserRepositoryPort {
      * @returs 찾은 유저 엔티티 (없으면 null)
      */
     findByProvider(provider: string, providerId: string): Promise<User | null>;
+
+    findByHandle(handle: string): Promise<User | null>;
 }
