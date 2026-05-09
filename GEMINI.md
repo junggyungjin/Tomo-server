@@ -19,8 +19,8 @@
 [x] Day 3: [핵심] 헥사고날 폴더 구조 설계 (Domain, Application, Adapter 폴더 세팅)
 [x] Day 4: User 도메인 설계: 순수 Entity 정의 및 외부 통신을 위한 Port(인터페이스) 작성
 [x] Day 5: User Persistence 어댑터 구현: Prisma를 사용한 실제 DB 저장 로직(Out-Port 구현체)
-[ ] Day 6: User Web 어댑터 구현: HTTP 요청을 받는 Controller(In-Adapter)
-[ ] Day 7: 의존성 주입(DI) 완성: Port와 Adapter를 NestJS Module에서 조립하기
+[x] Day 6: User Web 어댑터 구현: HTTP 요청을 받는 Controller(In-Adapter)
+[x] Day 7: 의존성 주입(DI) 완성: Port와 Adapter를 NestJS Module에서 조립하기
 
 ## Week 2: 인증(Auth) 도메인 & 외부 어댑터 연동
 [ ] Day 8: Auth 도메인 설계: 가입/로그인 UseCase 정의
