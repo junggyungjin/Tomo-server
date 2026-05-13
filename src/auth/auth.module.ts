@@ -5,6 +5,11 @@ import { UserModule } from 'src/user/user.module';
 import { JwtAdapter } from './adapter/out/jwt/jwt.adapter';
 import { GENERATE_TOKEN_PORT } from './application/ports/out/generate-token.port';
 import { JwtStrategy } from './adapter/in/jwt/jwt.strategy';
+import { AuthController } from './adapter/in/web/auth.controller';
+import { AuthService } from './application/services/auth.service';
+import { GoogleAuthAdapter } from './adapter/out/google/google-auth.adapter';
+import { VERIFY_SOCIAL_TOKEN_PORT } from './application/ports/out/verify-social-token.port';
+import { LOGIN_USECASE } from './application/ports/in/login.usecase';
 
 @Module({
     imports: [
@@ -16,14 +21,22 @@ import { JwtStrategy } from './adapter/in/jwt/jwt.strategy';
             secret: 'temporary-super-secret-key-for-tomo',
         })
     ], // Auth 서비스는 User 도메인의 기능(유저 조회/생성)을 사용해야 합니다.
-    controllers: [],
+    controllers: [AuthController],
     providers: [
         {
             provide: GENERATE_TOKEN_PORT,  // 인터페이스 대신 Symbol 사용
-            useClass: JwtAdapter,          
+            useClass: JwtAdapter,
         },
         JwtStrategy, // JwtStrategy를 Provider로 등록하여 NestJS가 주입(DI)할 수 있게 함
+        {
+            provide: VERIFY_SOCIAL_TOKEN_PORT,
+            useClass: GoogleAuthAdapter
+        },
+        {
+            provide: LOGIN_USECASE,
+            useClass: AuthService
+        }
     ],
-    exports: [GENERATE_TOKEN_PORT],  // 다른 모듈에서 심볼을 통해 주입받을 수 있도록 export
+    exports: [GENERATE_TOKEN_PORT, VERIFY_SOCIAL_TOKEN_PORT, LOGIN_USECASE],  // 다른 모듈에서 심볼을 통해 주입받을 수 있도록 export
 })
 export class AuthModule { }

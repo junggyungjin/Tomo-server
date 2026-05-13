@@ -1,4 +1,4 @@
-import { LoginCommand } from "./login.comman";
+import { LoginCommand } from "./login.command";
 
 export const LOGIN_USECASE = Symbol('LOGIN_USECASE');
 
