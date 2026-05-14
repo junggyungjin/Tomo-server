@@ -2,17 +2,17 @@ import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { CreateUserUseCase, CreateUserCommand } from '../in/create-user.usecase';
 import type { UserRepositoryPort } from '../out/user.repository.port';
-import { User } from 'src/user/domain/user.entity'; 
+import { User } from 'src/user/domain/user.entity';
 
 @Injectable()
 export class UserService implements CreateUserUseCase {
     constructor(
         @Inject('UserRepositoryPort')
         private readonly userRepository: UserRepositoryPort,
-    ) {}
+    ) { }
 
     async createUser(command: CreateUserCommand): Promise<User> {
-        // ADDED: 이미 가입된 유저인지 확인합니다.
+        // 이미 가입된 유저인지 확인합니다.
         const existingUser = await this.userRepository.findByProvider(
             command.provider,
             command.providerId,
@@ -41,6 +41,11 @@ export class UserService implements CreateUserUseCase {
         const savedUser = await this.userRepository.save(user);
 
         return savedUser;
+    }
+
+    // 소셜 로그인 연동 시 기존 유저를 찾기 위한 메서드
+    async getUserByProvider(provider: string, providerId: string): Promise<User | null> {
+        return this.userRepository.findByProvider(provider, providerId);
     }
 
     private async generateUniqueHandle(providedHandle: string | null | undefined): Promise<string> {

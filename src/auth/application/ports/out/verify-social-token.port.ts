@@ -18,5 +18,8 @@ export interface VerifySocialTokenPort {
    * @param token 클라이언트에서 전달받은 idToken 또는 accessToken
    * @throws 검증 실패 시 예외를 던집니다.
    */
-    verify(token: string): Promise<SocialProfile>;
+    verify(
+        provider: string,
+        token: string,
+    ): Promise<SocialProfile>;
 }

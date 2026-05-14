@@ -3,6 +3,8 @@ import { UserController } from "./adapter/in/web/user.controller";
 import { UserService } from "./application/ports/services/user.service";
 import { UserPersistenceAdapter } from "./adapter/out/persistence/user-persistence.adapter";
 import { PrismaModule } from "src/prisma/prisma.module";
+import { AuthUserFacade } from "./adapter/in/internal/auth-user.facade";
+import { GET_OR_CREATE_USER_PORT } from "src/auth/application/ports/out/get-or-create-user.port";
 
 @Module({
     imports: [
@@ -23,6 +25,12 @@ import { PrismaModule } from "src/prisma/prisma.module";
             provide: 'UserRepositoryPort',      // 누군가 'UserRepositoryPort'라는 이름표(Token)를 요청하면,
             useClass: UserPersistenceAdapter,   // UserPersistenceAdapter 클래스의 인스턴스를 주입해줘!
         },
+        UserService,
+        {
+            provide: GET_OR_CREATE_USER_PORT,
+            useClass: AuthUserFacade
+        }
     ],
+    exports: [GET_OR_CREATE_USER_PORT]
 })
-export class UserModule {}
+export class UserModule { }
