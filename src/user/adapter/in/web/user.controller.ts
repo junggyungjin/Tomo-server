@@ -2,13 +2,14 @@ import { Controller, Post, Body, Inject } from '@nestjs/common';
 import { CreateUserRequestDto } from './dto/create-user.request.dto';
 import { CreateUserCommand } from '../../../application/ports/in/create-user.usecase';
 import type { CreateUserUseCase } from '../../../application/ports/in/create-user.usecase';
+import { ApiResponse } from 'src/common/dto/api-response.dto';
 
 @Controller('users')
 export class UserController {
     constructor(
         @Inject('CreateUserUseCase')
         private readonly createUserUseCase: CreateUserUseCase,
-    ) {}
+    ) { }
 
     @Post()
     async createUser(
@@ -28,6 +29,6 @@ export class UserController {
         const user = await this.createUserUseCase.createUser(command);
 
         // 3. 결과 반환 (클라이언트에게 JSON으로 응답됨)
-        return user;
+        return ApiResponse.OK(user);
     }
 }

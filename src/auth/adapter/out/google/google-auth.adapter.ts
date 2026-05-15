@@ -1,14 +1,21 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { OAuth2Client } from 'google-auth-library';
 import { VerifySocialTokenPort, SocialProfile } from "src/auth/application/ports/out/verify-social-token.port";
 
 @Injectable()
 export class GoogleAuthAdapter implements VerifySocialTokenPort {
     private readonly client: OAuth2Client;
+    private readonly clientId: string;
 
-    private readonly clientId = '831538870114-nam04ognooopgklj36fspsgak85mt7ur.apps.googleusercontent.com';
+    private readonly logger = new Logger(GoogleAuthAdapter.name);
 
-    constructor() {
+    constructor(private readonly configService: ConfigService) {
+        const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+        if (!clientId) {
+            throw new Error('환경변수 GOOGLE_CLIENT_ID가 설정되지 않았습니다.')
+        }
+        this.clientId = clientId;
         this.client = new OAuth2Client(this.clientId);
     }
 
@@ -32,9 +39,8 @@ export class GoogleAuthAdapter implements VerifySocialTokenPort {
             }
         } catch (error) {
             // 디버깅을 위해 원래의 에러 메시지를 로그로 남겨두면 좋습니다.
-            console.error('Google Token Verify Error:', (error as Error).message);
+            this.logger.error(`Googel Token Verify Error: ${(error as Error).message}`, (error as Error).stack);
             throw new UnauthorizedException('유효하지 않은 구글 토큰입니다.');
         }
     }
 }
-

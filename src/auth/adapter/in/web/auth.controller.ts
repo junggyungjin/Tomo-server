@@ -3,6 +3,7 @@ import { SocialLoginRequestDto } from './dto/social-login.request.dto';
 import { LOGIN_USECASE } from '../../../application/ports/in/login.usecase';
 import type { LoginUseCase } from "../../../application/ports/in/login.usecase";
 import { LoginCommand } from '../../../application/ports/in/login.command';
+import { ApiResponse } from "src/common/dto/api-response.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -26,6 +27,6 @@ export class AuthController {
 
         const tokens = await this.loginUseCase.login(command);
 
-        return tokens;
+        return ApiResponse.OK(tokens);
     }
 }
