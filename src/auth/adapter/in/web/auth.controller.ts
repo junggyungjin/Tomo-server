@@ -25,8 +25,8 @@ export class AuthController {
             dto.name
         );
 
-        const tokens = await this.loginUseCase.login(command);
+        const result = await this.loginUseCase.login(command);
 
-        return ApiResponse.OK(tokens);
+        return ApiResponse.OK(result);
     }
 }

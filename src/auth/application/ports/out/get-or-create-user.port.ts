@@ -8,5 +8,15 @@ export interface GetOrCreateUserPort {
     getOrCreateUser(
         provider: string,
         providerId: string,
-    ): Promise<{ id: string }>; // 향후 권한(role) 등이 필요하면 여기에 추가
+    ): Promise<{
+        user: AuthUserProfile;
+        isNewUser: boolean;
+    }>; // 향후 권한(role) 등이 필요하면 여기에 추가
+}
+
+export interface AuthUserProfile {
+    id: string;
+    nickname: string;
+    handle: string;
+    nationality: string;
 }

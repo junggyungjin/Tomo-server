@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GetOrCreateUserPort } from 'src/auth/application/ports/out/get-or-create-user.port';
+import { GetOrCreateUserPort, AuthUserProfile } from 'src/auth/application/ports/out/get-or-create-user.port';
 import { UserService } from 'src/user/application/ports/services/user.service';
 import { CreateUserCommand } from 'src/user/application/ports/in/create-user.usecase';
 
@@ -7,9 +7,13 @@ import { CreateUserCommand } from 'src/user/application/ports/in/create-user.use
 export class AuthUserFacade implements GetOrCreateUserPort {
     constructor(private readonly userService: UserService) { }
 
-    async getOrCreateUser(provider: string, providerId: string): Promise<{ id: string; }> {
+    async getOrCreateUser(provider: string, providerId: string): Promise<{
+        user: AuthUserProfile;
+        isNewUser: boolean
+    }> {
         // 1. UserService를 통해 기존 유저가 있는지 확인
         let user = await this.userService.getUserByProvider(provider, providerId);
+        let isNewUser = false;
 
         // 2. 없으면 새로 생성
         if (!user) {
@@ -20,8 +24,18 @@ export class AuthUserFacade implements GetOrCreateUserPort {
                 'UNKNOWN' // 기본 국적
             );
             user = await this.userService.createUser(command);
+            isNewUser = true;
+
         }
 
-        return { id: user.id }
+        return {
+            user: {
+                id: user.id,
+                nickname: user.nickname,
+                handle: user.handle,
+                nationality: user.nationality
+            },
+            isNewUser
+        };
     }
 }
