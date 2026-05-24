@@ -16,7 +16,5 @@ export interface GetOrCreateUserPort {
 
 export interface AuthUserProfile {
     id: string;
-    nickname: string;
     handle: string;
-    nationality: string;
 }

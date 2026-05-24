@@ -5,6 +5,7 @@ import { UserPersistenceAdapter } from "./adapter/out/persistence/user-persisten
 import { PrismaModule } from "src/prisma/prisma.module";
 import { AuthUserFacade } from "./adapter/in/internal/auth-user.facade";
 import { GET_OR_CREATE_USER_PORT } from "src/auth/application/ports/out/get-or-create-user.port";
+import { UPDATE_USER_PROFILE_USECASE } from "./application/ports/in/update-user-profile.usecase";
 
 @Module({
     imports: [
@@ -20,6 +21,10 @@ import { GET_OR_CREATE_USER_PORT } from "src/auth/application/ports/out/get-or-c
         {
             provide: 'CreateUserUseCase', // 누군가 'CreateUserUseCase'라는 이름표(Token)를 요청하면,
             useClass: UserService        // UserService 클래스의 인스턴스를 주입해줘!
+        },
+        {
+            provide: UPDATE_USER_PROFILE_USECASE,
+            useClass: UserService
         },
         {
             provide: 'UserRepositoryPort',      // 누군가 'UserRepositoryPort'라는 이름표(Token)를 요청하면,

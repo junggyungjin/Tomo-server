@@ -15,6 +15,8 @@ export class UserMapper {
             prismaUser.nickname,
             prismaUser.handle,
             prismaUser.nationality,
+            prismaUser.gender,
+            prismaUser.profileImageUrl,
             prismaUser.createdAt,
         );
     }
@@ -31,6 +33,8 @@ export class UserMapper {
             nickname: user.nickname,
             handle: user.handle,
             nationality: user.nationality,
+            gender: user.gender,
+            profileImageUrl: user.profileImageUrl,
             createdAt: user.createdAt,
         };
     }

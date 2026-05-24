@@ -1,11 +1,12 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { CreateUserUseCase, CreateUserCommand } from '../in/create-user.usecase';
 import type { UserRepositoryPort } from '../out/user.repository.port';
 import { User } from 'src/user/domain/user.entity';
+import { UpdateUserProfileCommand, UpdateUserProfileUseCase } from '../in/update-user-profile.usecase';
 
 @Injectable()
-export class UserService implements CreateUserUseCase {
+export class UserService implements CreateUserUseCase, UpdateUserProfileUseCase {
     constructor(
         @Inject('UserRepositoryPort')
         private readonly userRepository: UserRepositoryPort,
@@ -35,12 +36,34 @@ export class UserService implements CreateUserUseCase {
             command.nickname,
             handle, // 이제 handle은 string 타입이 보장
             command.nationality,
+            null,
+            null,
             createdAt
         );
 
         const savedUser = await this.userRepository.save(user);
 
         return savedUser;
+    }
+
+    // 유저 프로필 업데이트 유즈케이스 구현
+    async updateProfile(command: UpdateUserProfileCommand): Promise<User> {
+        // 기존 유저 조회
+        const user = await this.userRepository.findById(command.userId);
+        if (!user) {
+            throw new NotFoundException('유저를 찾을 수 없습니다.');
+        }
+
+        // 엔티티 비즈니스 로직을 통해 상태 변경
+        user.updateProfile(
+            command.nickname,
+            command.nationality,
+            command.gender,
+            command.profileImageUrl
+        );
+
+        // 업데이트된 상태를 영속성 어댑터에 전달하여 DB에 저장
+        return this.userRepository.update(user);
     }
 
     // 소셜 로그인 연동 시 기존 유저를 찾기 위한 메서드

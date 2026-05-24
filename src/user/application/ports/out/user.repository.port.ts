@@ -31,4 +31,10 @@ export interface UserRepositoryPort {
     findByProvider(provider: string, providerId: string): Promise<User | null>;
 
     findByHandle(handle: string): Promise<User | null>;
+
+    /**
+     * 유저 정보를 업데이트
+     * @param user 
+     */
+    update(user: User): Promise<User>;
 }

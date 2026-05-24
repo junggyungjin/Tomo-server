@@ -31,9 +31,7 @@ export class AuthUserFacade implements GetOrCreateUserPort {
         return {
             user: {
                 id: user.id,
-                nickname: user.nickname,
                 handle: user.handle,
-                nationality: user.nationality
             },
             isNewUser
         };

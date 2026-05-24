@@ -8,7 +8,7 @@ import { UserMapper } from "./mapper/user.mapper";
 export class UserPersistenceAdapter implements UserRepositoryPort {
 
     // PrismaService를 주입받아 실제 DB와 통신할 수 있게 합니다.
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async save(user: User): Promise<User> {
         const persistenceData = UserMapper.toPersistence(user);
@@ -34,7 +34,7 @@ export class UserPersistenceAdapter implements UserRepositoryPort {
         // @@unique([provider, providerId]) 복합키 설정으로 인해 아래와 같이 검색합니다.
         const foundData = await this.prisma.user.findUnique({
             where: {
-                provider_providerId: {provider,providerId}
+                provider_providerId: { provider, providerId }
             }
         });
         return foundData ? UserMapper.toDomain(foundData) : null;
@@ -46,5 +46,17 @@ export class UserPersistenceAdapter implements UserRepositoryPort {
             where: { handle },
         });
         return foundData ? UserMapper.toDomain(foundData) : null;
+    }
+
+    // 도메인 엔티티를 전달받아 실제 DB의 데이터를 수정
+    async update(user: User): Promise<User> {
+        const persistenceData = UserMapper.toPersistence(user);
+
+        const updatedData = await this.prisma.user.update({
+            where: { id: user.id },
+            data: persistenceData,
+        });
+
+        return UserMapper.toDomain(updatedData);
     }
 }
