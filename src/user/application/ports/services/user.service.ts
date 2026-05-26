@@ -38,6 +38,7 @@ export class UserService implements CreateUserUseCase, UpdateUserProfileUseCase 
             command.nationality,
             null,
             null,
+            'PENDING',
             createdAt
         );
 
@@ -62,8 +63,11 @@ export class UserService implements CreateUserUseCase, UpdateUserProfileUseCase 
             command.profileImageUrl
         );
 
+        // 온보딩 과정이므로 프로필 업데이트 시 상태를 ACTIVE로 변경
+        const activatedUser = user.activate();
+
         // 업데이트된 상태를 영속성 어댑터에 전달하여 DB에 저장
-        return this.userRepository.update(user);
+        return this.userRepository.update(activatedUser);
     }
 
     // 소셜 로그인 연동 시 기존 유저를 찾기 위한 메서드

@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginUseCase } from '../ports/in/login.usecase';
 import { LoginCommand } from '../ports/in/login.command';
 import type { VerifySocialTokenPort } from '../ports/out/verify-social-token.port';
@@ -40,6 +40,11 @@ export class AuthService implements LoginUseCase {
             command.provider,
             command.providerId,
         )
+
+        // 영구 정지 유저 로그인 차단 방어 로직
+        if (user.status === 'BANNED') {
+            throw new ForbiddenException('영구 정지된 계정입니다.');
+        }
 
         // JWT 발급
         const tokens = await this.generateTokenPort.generateTokens(user.id);

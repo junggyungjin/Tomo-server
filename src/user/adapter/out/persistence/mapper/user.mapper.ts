@@ -1,5 +1,5 @@
 import { User as PrismaUser } from '@prisma/client';
-import { User } from 'src/user/domain/user.entity';
+import { User, UserStatus } from 'src/user/domain/user.entity';
 
 export class UserMapper {
     /**
@@ -17,6 +17,7 @@ export class UserMapper {
             prismaUser.nationality,
             prismaUser.gender,
             prismaUser.profileImageUrl,
+            prismaUser.status as UserStatus,
             prismaUser.createdAt,
         );
     }
@@ -35,6 +36,7 @@ export class UserMapper {
             nationality: user.nationality,
             gender: user.gender,
             profileImageUrl: user.profileImageUrl,
+            status: user.status,
             createdAt: user.createdAt,
         };
     }

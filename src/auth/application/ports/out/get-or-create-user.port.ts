@@ -17,4 +17,5 @@ export interface GetOrCreateUserPort {
 export interface AuthUserProfile {
     id: string;
     handle: string;
+    status: string;
 }

@@ -1,3 +1,5 @@
+export type UserStatus = 'PENDING' | 'ACTIVE' | 'BANNED' | 'DELETED';
+
 export class User {
     constructor(
         public readonly id: string,
@@ -9,8 +11,25 @@ export class User {
         public nationality: string | null,
         public gender: string | null,
         public profileImageUrl: string | null,
+        public readonly status: UserStatus = 'PENDING',
         public readonly createdAt: Date,
     ) { }
+
+    public activate(): User {
+        return new User(
+            this.id,
+            this.provider,
+            this.providerId,
+            this.email,
+            this.nickname,
+            this.handle,
+            this.nationality,
+            this.gender,
+            this.profileImageUrl,
+            'ACTIVE',
+            this.createdAt
+        )
+    }
 
     public updateProfile(
         nickname: string | null,
