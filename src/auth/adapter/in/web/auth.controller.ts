@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, Inject } from "@nestjs/common";
+import { Controller, Post, Body, Param, Inject, HttpCode, HttpStatus } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiResponse as SwaggerApiResponse } from '@nestjs/swagger';
 import { SocialLoginRequestDto } from './dto/social-login.request.dto';
 import { LOGIN_USECASE } from '../../../application/ports/in/login.usecase';
@@ -27,12 +27,20 @@ export class AuthController {
                 success: true,
                 timestamp: '2026-05-25T10:00:00.000Z',
                 data: {
-                    user: { id: 'uuid', nickname: 'TomoUser', isNewUser: false },
-                    tokens: { accessToken: 'eyJhbGci...', refreshToken: 'eyJhbGci...' }
+                    // 💡 FIXED: 인터페이스 구조에 맞게 완벽하게 재배치했습니다.
+                    accessToken: 'eyJhbGci...',
+                    refreshToken: 'eyJhbGci...',
+                    user: {
+                        id: 'uuid-string',
+                        handle: '@tomouser',
+                        status: 'ACTIVE'
+                    },
+                    isNewUser: false
                 }
             }
         }
     })
+    @HttpCode(HttpStatus.OK)
     @Post('login/:provider')
     async login(
         @Param('provider') provider: string,

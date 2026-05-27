@@ -7,7 +7,6 @@ import type { CreateUserUseCase } from '../../../application/ports/in/create-use
 import { ApiResponse } from 'src/common/dto/api-response.dto';
 import { UPDATE_USER_PROFILE_USECASE, UpdateUserProfileCommand } from 'src/user/application/ports/in/update-user-profile.usecase';
 import type { UpdateUserProfileUseCase } from 'src/user/application/ports/in/update-user-profile.usecase';
-import { timestamp } from 'rxjs';
 
 // Swagger 문서 카테고리화 및 라우터 설정
 @ApiTags('Users')
@@ -30,7 +29,19 @@ export class UserController {
             example: {
                 success: true,
                 timestamp: '2026-05-25T10:00:00.000Z',
-                data: { id: 'uuid', nickname: 'TomoUser', provider: 'google', providerId: '123' }
+                data: {
+                    id: 'uuid-string',
+                    provider: 'google',
+                    providerId: '123456789',
+                    email: 'user@example.com',
+                    nickname: 'TomoUser',
+                    handle: '@tomouser',
+                    nationality: 'KR',
+                    gender: null,
+                    profileImageUrl: null,
+                    status: 'PENDING',
+                    createdAt: '2026-05-27T10:00:00.000Z'
+                }
             }
         }
     })
@@ -65,7 +76,19 @@ export class UserController {
             example: {
                 success: true,
                 timestamp: '2026-05-25T10:00:00.000Z',
-                data: { id: 'uuid', nickname: 'NewTomo', nationality: 'KR' }
+                data: {
+                    id: 'uuid-string',
+                    provider: 'google',
+                    providerId: '123456789',
+                    email: 'user@example.com',
+                    nickname: 'NewTomo',
+                    handle: '@tomouser',
+                    nationality: 'KR',
+                    gender: 'MALE',
+                    profileImageUrl: 'https://example.com/profile.jpg',
+                    status: 'ACTIVE',
+                    createdAt: '2026-05-27T10:00:00.000Z'
+                }
             }
         }
     })
