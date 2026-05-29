@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UserModule } from 'src/user/user.module';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { JwtAdapter } from './adapter/out/jwt/jwt.adapter';
 import { GENERATE_TOKEN_PORT } from './application/ports/out/generate-token.port';
 import { JwtStrategy } from './adapter/in/jwt/jwt.strategy';
@@ -9,11 +10,15 @@ import { AuthController } from './adapter/in/web/auth.controller';
 import { AuthService } from './application/services/auth.service';
 import { GoogleAuthAdapter } from './adapter/out/google/google-auth.adapter';
 import { VERIFY_SOCIAL_TOKEN_PORT } from './application/ports/out/verify-social-token.port';
+import { MANAGE_REFRESH_TOKEN_PORT } from './application/ports/out/manage-refresh-token.port';
 import { LOGIN_USECASE } from './application/ports/in/login.usecase';
+import { REFRESH_TOKEN_USECASE } from './application/ports/in/refresh-token.usecase';
+import { RefreshTokenPersistenceAdapter } from './adapter/out/persistence/refresh-token-persistence.adapter';
 
 @Module({
     imports: [
         UserModule, // Auth 서비스는 User 도메인의 기능(유저 조회/생성)을 사용해야 합니다.
+        PrismaModule, // DB 연동을 위해 PrismaModule 추가
         PassportModule, // Passport 기반의 인증(Strategy)을 사용하기 위해 등록
         JwtModule.register({
             // 주의: 실제 서비스에서는 반드시 .env 같은 환경변수로 관리해야 합니다.
@@ -33,10 +38,24 @@ import { LOGIN_USECASE } from './application/ports/in/login.usecase';
             useClass: GoogleAuthAdapter
         },
         {
+            provide: MANAGE_REFRESH_TOKEN_PORT,
+            useClass: RefreshTokenPersistenceAdapter
+        },
+        {
             provide: LOGIN_USECASE,
+            useClass: AuthService
+        },
+        {
+            provide: REFRESH_TOKEN_USECASE,
             useClass: AuthService
         }
     ],
-    exports: [GENERATE_TOKEN_PORT, VERIFY_SOCIAL_TOKEN_PORT, LOGIN_USECASE],  // 다른 모듈에서 심볼을 통해 주입받을 수 있도록 export
+    exports: [
+        GENERATE_TOKEN_PORT,
+        VERIFY_SOCIAL_TOKEN_PORT,
+        MANAGE_REFRESH_TOKEN_PORT,
+        LOGIN_USECASE,
+        REFRESH_TOKEN_USECASE
+    ],  // 다른 모듈에서 심볼을 통해 주입받을 수 있도록 export
 })
 export class AuthModule { }

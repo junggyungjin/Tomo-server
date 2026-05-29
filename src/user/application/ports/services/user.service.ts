@@ -4,6 +4,7 @@ import { CreateUserUseCase, CreateUserCommand } from '../in/create-user.usecase'
 import type { UserRepositoryPort } from '../out/user.repository.port';
 import { User } from 'src/user/domain/user.entity';
 import { UpdateUserProfileCommand, UpdateUserProfileUseCase } from '../in/update-user-profile.usecase';
+import { GetUserUseCase } from '../in/get-user.usecase';
 
 @Injectable()
 export class UserService implements CreateUserUseCase, UpdateUserProfileUseCase {
@@ -73,6 +74,15 @@ export class UserService implements CreateUserUseCase, UpdateUserProfileUseCase 
     // 소셜 로그인 연동 시 기존 유저를 찾기 위한 메서드
     async getUserByProvider(provider: string, providerId: string): Promise<User | null> {
         return this.userRepository.findByProvider(provider, providerId);
+    }
+
+    // 유저 정보 가져오는 메서드
+    async getUser(userId: string): Promise<User> {
+        const user = await this.userRepository.findById(userId);
+        if (!user) {
+            throw new NotFoundException('유저를 찾을 수 없습니다.');
+        }
+        return user;
     }
 
     private async generateUniqueHandle(providedHandle: string | null | undefined): Promise<string> {

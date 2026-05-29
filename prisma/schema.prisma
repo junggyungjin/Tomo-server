@@ -30,5 +30,18 @@ model User {
   profileImageUrl String?
   status      UserStatus @default(PENDING)
   createdAt   DateTime @default(now())      // 가입일 (자동 생성)
+  updatedAt   DateTime @updatedAt
+  refreshTokens   RefreshToken[]
   @@unique([provider, providerId])
+}
+
+model RefreshToken {
+  id     String   @id @default(uuid())
+  token  String   @unique @db.Text
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  deviceInfo  String?                   // 접속 환경 식별용
+  createdAt   DateTime   @default(now())
+  @@index([userId]) 
 }

@@ -6,6 +6,7 @@ import { PrismaModule } from "src/prisma/prisma.module";
 import { AuthUserFacade } from "./adapter/in/internal/auth-user.facade";
 import { GET_OR_CREATE_USER_PORT } from "src/auth/application/ports/out/get-or-create-user.port";
 import { UPDATE_USER_PROFILE_USECASE } from "./application/ports/in/update-user-profile.usecase";
+import { GET_USER_USECASE } from "./application/ports/in/get-user.usecase";
 
 @Module({
     imports: [
@@ -24,6 +25,10 @@ import { UPDATE_USER_PROFILE_USECASE } from "./application/ports/in/update-user-
         },
         {
             provide: UPDATE_USER_PROFILE_USECASE,
+            useClass: UserService
+        },
+        {
+            provide: GET_USER_USECASE,
             useClass: UserService
         },
         {

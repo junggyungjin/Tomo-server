@@ -1,12 +1,16 @@
-import { Controller, Post, Body, Inject, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Inject, Patch, Get, UseGuards } from '@nestjs/common';
+import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { CreateUserRequestDto } from './dto/create-user.request.dto';
 import { UpdateUserProfileRequestDto } from './dto/update-user-profile.request.dto';
 import { CreateUserCommand } from '../../../application/ports/in/create-user.usecase';
 import type { CreateUserUseCase } from '../../../application/ports/in/create-user.usecase';
-import { ApiResponse } from 'src/common/dto/api-response.dto';
-import { UPDATE_USER_PROFILE_USECASE, UpdateUserProfileCommand } from 'src/user/application/ports/in/update-user-profile.usecase';
-import type { UpdateUserProfileUseCase } from 'src/user/application/ports/in/update-user-profile.usecase';
+import { ApiResponse } from '../../../../common/dto/api-response.dto';
+import { UPDATE_USER_PROFILE_USECASE, UpdateUserProfileCommand } from '../../../application/ports/in/update-user-profile.usecase';
+import type { UpdateUserProfileUseCase } from '../../../application/ports/in/update-user-profile.usecase';
+import { GET_USER_USECASE } from '../../../application/ports/in/get-user.usecase';
+import type { GetUserUseCase } from '../../../application/ports/in/get-user.usecase';
 
 // Swagger 문서 카테고리화 및 라우터 설정
 @ApiTags('Users')
@@ -18,6 +22,9 @@ export class UserController {
 
         @Inject(UPDATE_USER_PROFILE_USECASE)
         private readonly updateUserProfileUseCase: UpdateUserProfileUseCase,
+
+        @Inject(GET_USER_USECASE)
+        private readonly getUserUseCase: GetUserUseCase,
     ) { }
 
     @ApiOperation({ summary: '새 사용자 생성', description: '소셜 로그인 후 신규 사용자를 생성합니다.' })
@@ -66,6 +73,8 @@ export class UserController {
         return ApiResponse.OK(user);
     }
 
+
+
     @ApiBearerAuth('access-token')
     @ApiOperation({ summary: '사용자 프로필 업데이트', description: '사용자의 프로필 정보를 수정합니다.' })
     @ApiBody({ type: UpdateUserProfileRequestDto })
@@ -92,13 +101,15 @@ export class UserController {
             }
         }
     })
+    @UseGuards(AuthGuard('jwt')) // ADDED: JWT 가드 적용
     @Patch('profile')
     async updateProfile(
+        @CurrentUser() userPayload: { userId: string },
         @Body() request: UpdateUserProfileRequestDto,
     ) {
         // 1. DTO를 Command로 변환
         const command = new UpdateUserProfileCommand(
-            request.userId, // 추후 JWT Guard 적용 시 req.user.id 로 교체 예정
+            userPayload.userId, // 추후 JWT Guard 적용 시 req.user.id 로 교체 예정
             request.nickname,
             request.nationality,
             request.gender || '',
@@ -109,6 +120,36 @@ export class UserController {
         const user = await this.updateUserProfileUseCase.updateProfile(command);
 
         // 3. 결과 반환
+        return ApiResponse.OK(user);
+    }
+
+
+    // 내 정보 조회(세션 검증) 엔드포인트 구현
+    @ApiBearerAuth('access-token')
+    @ApiOperation({ summary: '내 정보 조회', description: '발급받은 JWT(Access Token)를 검증하고 현재 유저의 프로필을 반환합니다.' })
+    @SwaggerApiResponse({
+        status: 200,
+        description: '조회 성공',
+        schema: {
+            example: {
+                success: true,
+                timestamp: '2026-05-29T10:00:00.000Z',
+                data: {
+                    id: 'uuid-string',
+                    provider: 'google',
+                    nickname: 'TomoUser',
+                    status: 'ACTIVE',
+                }
+            }
+        }
+    })
+    @UseGuards(AuthGuard('jwt')) // JWT 토큰 검증 미들웨어
+    @Get('me')
+    // @Req() req: any 대신 커스텀 데코레이터 적용
+    async getMe(@CurrentUser() userPayload: { userId: string }) {
+        // 프레임워크의 req 객체를 직접 뒤지지 않고 페이로드에서 바로 추출합니다.
+        const user = await this.getUserUseCase.getUser(userPayload.userId);
+
         return ApiResponse.OK(user);
     }
 }
