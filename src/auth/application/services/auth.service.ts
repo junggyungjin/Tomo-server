@@ -84,6 +84,14 @@ export class AuthService implements LoginUseCase, RefreshTokenUseCase {
             throw new UnauthorizedException('유효하지 않거나 만료된 리프레시 토큰입니다');
         }
 
+        // 토큰 만료 시간 검증
+        const now = new Date();
+        if (tokenRecord.expiresAt < now) {
+            // 만료된 토큰이므로 DB에서 삭제하여 찌꺼기를 정리
+            await this.manageRefreshTokenPort.deleteRefreshToken(command.refreshToken);
+            throw new UnauthorizedException('리프레시 토큰이 만료되었습니다. 다시 로그인해주세요.')
+        }
+
         // 2. 보안(RTR)을 위해 한 번 사용된 리프레시 토큰은 삭제
         await this.manageRefreshTokenPort.deleteRefreshToken(command.refreshToken);
 

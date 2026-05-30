@@ -87,7 +87,7 @@ export class AuthController {
     async refresh(
         @Body() dto: RefreshTokenRequestDto
     ) {
-        const command = new RefreshTokenCommand(dto.refreshToekn);
+        const command = new RefreshTokenCommand(dto.refreshToken);
         const result = await this.refreshTokenUseCase.refresh(command);
 
         return ApiResponse.OK(result);

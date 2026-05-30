@@ -8,5 +8,5 @@ export class RefreshTokenRequestDto {
     })
     @IsNotEmpty()
     @IsString()
-    readonly refreshToekn!: string;
+    readonly refreshToken!: string;
 }
