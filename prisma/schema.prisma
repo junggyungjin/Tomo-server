@@ -18,6 +18,11 @@ enum UserStatus {
   DELETED
 }
 
+enum RoomStatus {
+  OPEN
+  CLOSED
+}
+
 model User {
   id          String   @id @default(uuid()) // PK (UUID)
   provider    String                       // 가입 경로(소셜로그인)
@@ -32,6 +37,7 @@ model User {
   createdAt   DateTime @default(now())      // 가입일 (자동 생성)
   updatedAt   DateTime @updatedAt
   refreshTokens   RefreshToken[]
+  feed        Feed[]
   @@unique([provider, providerId])
 }
 
@@ -44,4 +50,24 @@ model RefreshToken {
   deviceInfo  String?                   // 접속 환경 식별용
   createdAt   DateTime   @default(now())
   @@index([userId]) 
+}
+
+model Feed {
+  id         String     @id @default(uuid())
+  content    String?    // 글 내용 (사진만 올릴 수도 있으므로 optional)
+  authorId   String
+  author     User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  callRoom   CallRoom?  // 1:1 관계 (선택적 통화방)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model CallRoom {
+  id                   String       @id @default(uuid())
+  feedId               String       @unique // Feed와의 1:1관계를 위한 unique 외래키
+  status               RoomStatus   @default(OPEN)  // 상태 : OPEN, CLOSED 등
+  maxParicipants       Int          @default(4)    // 최대인원 : 4
+  currentParticipants  Int          @default(1)  // 현재인원 (방장 포함이므로 기본값 1)
+  feed                 Feed         @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  createdAt            DateTime     @default(now())
 }
