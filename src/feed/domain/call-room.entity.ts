@@ -27,6 +27,24 @@ export class CallRoom {
         );
     }
 
+    static restore(payload: {
+        id: string;
+        feedId: string;
+        status: RoomStatus;
+        maxParticipants: number;
+        currentParticipants: number;
+        createdAt: Date;
+    }): CallRoom {
+        return new CallRoom(
+            payload.id,
+            payload.feedId,
+            payload.status,
+            payload.maxParticipants,
+            payload.currentParticipants,
+            payload.createdAt
+        );
+    }
+
     // 방 닫기
     closeRoom() {
         this.status = RoomStatus.CLOSED;

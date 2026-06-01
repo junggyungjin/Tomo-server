@@ -27,6 +27,24 @@ export class Feed {
         );
     }
 
+    static restore(payload: {
+        id: string;
+        content: string | null;
+        authorId: string;
+        createdAt: Date;
+        updatedAt: Date;
+        callRoom: CallRoom | null;
+    }): Feed {
+        return new Feed(
+            payload.id,
+            payload.content,
+            payload.authorId,
+            payload.callRoom,
+            payload.createdAt,
+            payload.updatedAt
+        );
+    }
+
     updateContent(newContent: string): void {
         this.content = newContent;
         this.updatedAt = new Date();
