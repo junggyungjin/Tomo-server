@@ -4,7 +4,6 @@ import { CreateUserUseCase, CreateUserCommand } from '../in/create-user.usecase'
 import type { UserRepositoryPort } from '../out/user.repository.port';
 import { User } from 'src/user/domain/user.entity';
 import { UpdateUserProfileCommand, UpdateUserProfileUseCase } from '../in/update-user-profile.usecase';
-import { GetUserUseCase } from '../in/get-user.usecase';
 
 @Injectable()
 export class UserService implements CreateUserUseCase, UpdateUserProfileUseCase {
