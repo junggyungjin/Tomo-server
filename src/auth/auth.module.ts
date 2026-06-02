@@ -14,25 +14,31 @@ import { MANAGE_REFRESH_TOKEN_PORT } from './application/ports/out/manage-refres
 import { LOGIN_USECASE } from './application/ports/in/login.usecase';
 import { REFRESH_TOKEN_USECASE } from './application/ports/in/refresh-token.usecase';
 import { RefreshTokenPersistenceAdapter } from './adapter/out/persistence/refresh-token-persistence.adapter';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
     imports: [
         UserModule, // Auth 서비스는 User 도메인의 기능(유저 조회/생성)을 사용해야 합니다.
-        PrismaModule, // DB 연동을 위해 PrismaModule 추가
         PassportModule, // Passport 기반의 인증(Strategy)을 사용하기 위해 등록
-        JwtModule.register({
+        JwtModule.registerAsync({
             // 주의: 실제 서비스에서는 반드시 .env 같은 환경변수로 관리해야 합니다.
             // Day 24(환경 설정 어댑터)에서 분리할 예정이므로 임시값을 사용합니다.
-            secret: 'temporary-super-secret-key-for-tomo',
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => ({
+                secret: config.get<string>('JWT_SECRET'),
+            }),
         })
     ], // Auth 서비스는 User 도메인의 기능(유저 조회/생성)을 사용해야 합니다.
     controllers: [AuthController],
     providers: [
+        // --- 1. 일반 프로바이더 등록 ---
+        JwtStrategy, // JwtStrategy를 Provider로 등록하여 NestJS가 주입(DI)할 수 있게 함
+        AuthService, // 싱글톤 객체 1회 생성
+        // --- 2. Outbound 어댑터 연결 ---
         {
             provide: GENERATE_TOKEN_PORT,  // 인터페이스 대신 Symbol 사용
             useClass: JwtAdapter,
         },
-        JwtStrategy, // JwtStrategy를 Provider로 등록하여 NestJS가 주입(DI)할 수 있게 함
         {
             provide: VERIFY_SOCIAL_TOKEN_PORT,
             useClass: GoogleAuthAdapter
@@ -41,13 +47,14 @@ import { RefreshTokenPersistenceAdapter } from './adapter/out/persistence/refres
             provide: MANAGE_REFRESH_TOKEN_PORT,
             useClass: RefreshTokenPersistenceAdapter
         },
+        // --- 3. Inbound 유스케이스 연결 (useExisting 활용) ---
         {
             provide: LOGIN_USECASE,
-            useClass: AuthService
+            useExisting: AuthService // 이미 만들어진 AuthService를 재사용
         },
         {
             provide: REFRESH_TOKEN_USECASE,
-            useClass: AuthService
+            useExisting: AuthService // 이미 만들어진 AuthService를 재사용
         }
     ],
     exports: [

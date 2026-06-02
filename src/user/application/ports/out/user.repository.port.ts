@@ -1,5 +1,7 @@
 import { User } from '../../../domain/user.entity'
 
+export const USER_REPOSITORY_PORT = Symbol('USER_REPOSITORY_PORT')
+
 export interface UserRepositoryPort {
     /**
      * 새로운 유저를 DB에 저장합니다
@@ -26,7 +28,7 @@ export interface UserRepositoryPort {
      * 소셜 로그인 정보로 유저를 찾는다
      * @param provider 소셜 로그인 제공자 (카카오,라인,애플,구글)
      * @param providerId 소셜 플랫폼에서 제공하는 고유 식별자
-     * @returs 찾은 유저 엔티티 (없으면 null)
+     * @returns 찾은 유저 엔티티 (없으면 null)
      */
     findByProvider(provider: string, providerId: string): Promise<User | null>;
 

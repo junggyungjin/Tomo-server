@@ -11,8 +11,10 @@ export class CreateUserCommand {
         // email과 handle은 선택적으로 받을 수 있으므로 ?를 사용합니다.
         public readonly email?: string | null,
         public readonly handle?: string | null,
-    ) {}
+    ) { }
 }
+
+export const CREATE_USER_USECASE = Symbol('CREATE_USER_USECASE');
 
 // 외부(Controller)와 내부(Service)를 연결할 인터페이스
 export interface CreateUserUseCase {
