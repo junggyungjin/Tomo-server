@@ -1,13 +1,16 @@
 import { Feed } from "src/feed/domain/feed.entity";
 import { CallRoom, RoomStatus as DomainRoomStatus } from "src/feed/domain/call-room.entity";
-import { Feed as PrismaFeed, CallRoom as PrismaCallRoom, RoomStatus as PrismaRoomStatus } from '@prisma/client';
+import { Feed as PrismaFeed, CallRoom as PrismaCallRoom, RoomStatus as PrismaRoomStatus, User as PrismaUser } from '@prisma/client';
 
-type PrismaFeedWithCallRoom = PrismaFeed & { callRoom?: PrismaCallRoom | null };
+type PrismaFeedWithRelations = PrismaFeed & {
+    callRoom?: PrismaCallRoom | null;
+    author: PrismaUser;
+};
 
 export class FeedMapper {
 
     // 1. DB 모델 -> 순수 도메인 엔티티 (Restore)
-    static toDomain(prismaFeed: PrismaFeedWithCallRoom): Feed {
+    static toDomain(prismaFeed: PrismaFeedWithRelations): Feed {
         let callRoom: CallRoom | undefined;
 
         if (prismaFeed.callRoom) {
@@ -31,6 +34,8 @@ export class FeedMapper {
             createdAt: prismaFeed.createdAt,
             updatedAt: prismaFeed.updatedAt,
             callRoom: callRoom || null,
+            authorNickname: prismaFeed.author.nickname || '',
+            authorHandle: prismaFeed.author.handle
         });
     }
 

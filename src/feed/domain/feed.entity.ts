@@ -5,6 +5,8 @@ export class Feed {
         public readonly id: string | null,
         public content: string | null,
         public readonly authorId: string,
+        public readonly authorNickname: string,
+        public readonly authorHandle: string,
         public callRoom: CallRoom | null,
         public readonly createdAt: Date,
         public updatedAt: Date,
@@ -14,6 +16,8 @@ export class Feed {
     static create(payload: {
         content: string | null;
         authorId: string;
+        authorNickname: string;
+        authorHandle: string;
         callRoom: CallRoom | null;
     }): Feed {
         const now = new Date();
@@ -21,6 +25,8 @@ export class Feed {
             null,
             payload.content,
             payload.authorId,
+            payload.authorNickname,
+            payload.authorHandle,
             payload.callRoom,
             now,
             now,
@@ -31,6 +37,8 @@ export class Feed {
         id: string;
         content: string | null;
         authorId: string;
+        authorNickname: string;
+        authorHandle: string;
         createdAt: Date;
         updatedAt: Date;
         callRoom: CallRoom | null;
@@ -39,6 +47,8 @@ export class Feed {
             payload.id,
             payload.content,
             payload.authorId,
+            payload.authorNickname,
+            payload.authorHandle,
             payload.callRoom,
             payload.createdAt,
             payload.updatedAt

@@ -40,6 +40,6 @@ import { USER_REPOSITORY_PORT } from "./application/ports/out/user.repository.po
             useClass: AuthUserFacade
         }
     ],
-    exports: [GET_OR_CREATE_USER_PORT]
+    exports: [GET_OR_CREATE_USER_PORT, GET_USER_USECASE]
 })
 export class UserModule { }

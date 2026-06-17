@@ -34,6 +34,7 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
                 },
                 include: {
                     callRoom: true, // 생성 후 통화방 데이터까지 묶어서 반환받음
+                    author: true,
                 },
             });
         }
@@ -47,6 +48,7 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
                 },
                 include: {
                     callRoom: true,
+                    author: true,
                 },
             });
         }
@@ -58,7 +60,10 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
     async findById(id: string): Promise<Feed | null> {
         const prismaFeed = await this.prisma.feed.findUnique({
             where: { id },
-            include: { callRoom: true },
+            include: {
+                callRoom: true,
+                author: true
+            },
         });
 
         if (!prismaFeed) return null;
@@ -69,7 +74,10 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
     async findAll(): Promise<Feed[]> {
         const prismaFeeds = await this.prisma.feed.findMany({
             orderBy: { createdAt: 'desc' }, // 보통 피드는 최신순(내림차순)으로 정렬
-            include: { callRoom: true },
+            include: {
+                callRoom: true,
+                author: true
+            },
         });
 
         return prismaFeeds.map(prismaFeed => FeedMapper.toDomain(prismaFeed));

@@ -5,7 +5,8 @@ import {
     Inject,
     Param,
     Post,
-    UseGuards
+    UseGuards,
+    NotFoundException,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { ApiTags, ApiOperation, ApiResponse as SwaggerApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger'
@@ -22,6 +23,8 @@ import {
 } from 'src/feed/application/ports/in/get-feed.usecase'
 import type { GetFeedUseCase } from 'src/feed/application/ports/in/get-feed.usecase'
 import { ApiResponse } from 'src/common/dto/api-response.dto'
+import { GET_USER_USECASE } from 'src/user/application/ports/in/get-user.usecase'
+import type { GetUserUseCase } from 'src/user/application/ports/in/get-user.usecase'
 
 @ApiTags('Tomo Feeds')
 @Controller('feeds')
@@ -31,6 +34,8 @@ export class FeedController {
         private readonly createFeedUseCase: CreateFeedUseCase,
         @Inject(GET_FEED_USE_CASE)
         private readonly getFeedUseCase: GetFeedUseCase,
+        @Inject(GET_USER_USECASE)
+        private readonly getUserUseCase: GetUserUseCase,
     ) { }
 
     @ApiOperation({ summary: '피드 작성', description: '익명 보이스 채팅방을 포함할 수 있는 새로운 피드를 생성합니다.' })
@@ -40,7 +45,7 @@ export class FeedController {
         description: '피드 생성 성공',
         type: FeedResponseDto // Swagger 명세서에 Response DTO의 형태를 그대로 띄움
     })
-    // ✅ 2. 글을 작성하는 방(POST) 문 앞에만 경비원을 세웁니다!
+    // 2. 글을 작성하는 방(POST) 문 앞에만 경비원을 세웁니다!
     @ApiBearerAuth('access-token') // Swagger에도 "이 API는 자물쇠 채워짐" 표시
     @UseGuards(AuthGuard('jwt')) //  실제 로그인 검사 수행
     @Post()
@@ -48,13 +53,22 @@ export class FeedController {
         @CurrentUser() userPayload: { userId: string },
         @Body() dto: CreateFeedRequestDto,
     ) {
+        // 1. 유저 정보 조회 (닉네임과 핸들 필요)
+        const user = await this.getUserUseCase.getUser(userPayload.userId);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        // 2. 커맨드에 닉네임과 핸들 추가
         const command = new CreateFeedCommand(
-            userPayload.userId,
+            user.id,
+            user.nickname || 'Unknown',
+            user.handle,
             dto.content ?? null,
             dto.hasCallRoom,
         );
 
-        // 유스케이스 실행 (엔티티 반환)
+        // 3. 유스케이스 실행 (엔티티 반환)
         const feed = await this.createFeedUseCase.execute(command);
 
         // 엔티티를 클라이언트용 DTO로 안전하게 전달

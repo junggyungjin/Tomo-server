@@ -1,6 +1,7 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { CreateUserUseCase, CreateUserCommand } from '../in/create-user.usecase';
+import { USER_REPOSITORY_PORT } from '../out/user.repository.port';
 import type { UserRepositoryPort } from '../out/user.repository.port';
 import { User } from 'src/user/domain/user.entity';
 import { UpdateUserProfileCommand, UpdateUserProfileUseCase } from '../in/update-user-profile.usecase';
@@ -8,7 +9,7 @@ import { UpdateUserProfileCommand, UpdateUserProfileUseCase } from '../in/update
 @Injectable()
 export class UserService implements CreateUserUseCase, UpdateUserProfileUseCase {
     constructor(
-        @Inject('UserRepositoryPort')
+        @Inject(USER_REPOSITORY_PORT)
         private readonly userRepository: UserRepositoryPort,
     ) { }
 

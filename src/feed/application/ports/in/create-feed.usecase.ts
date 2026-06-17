@@ -3,6 +3,8 @@ import { Feed } from "src/feed/domain/feed.entity";
 export class CreateFeedCommand {
     constructor(
         public readonly authorId: string,
+        public readonly authorNickname: string,
+        public readonly authorHandle: string,
         public readonly content: string | null,
         public readonly hasCallRoom: boolean,
     ) { }

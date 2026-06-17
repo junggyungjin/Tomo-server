@@ -27,6 +27,8 @@ export class FeedService implements CreateFeedUseCase, GetFeedUseCase {
         const feed = Feed.create({
             content: command.content,
             authorId: command.authorId,
+            authorNickname: command.authorNickname,
+            authorHandle: command.authorHandle,
             callRoom: callRoom,
         });
 

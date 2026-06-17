@@ -26,6 +26,12 @@ export class FeedResponseDto {
     @ApiProperty({ description: '작성자 ID (익명 유저 식별자)' })
     authorId!: string;
 
+    @ApiProperty({ description: '작성자 닉네임' })
+    authorNickname!: string;
+
+    @ApiProperty({ description: '작성자 고유 핸들' })
+    authorHandle!: string;
+
     @ApiPropertyOptional({ type: CallRoomResponseDto, description: '연결된 익명 보이스 통화방 정보' })
     callRoom?: CallRoomResponseDto | null;
 
@@ -37,6 +43,8 @@ export class FeedResponseDto {
             id: feed.id!,
             content: feed.content,
             authorId: feed.authorId,
+            authorNickname: feed.authorNickname,
+            authorHandle: feed.authorHandle,
             callRoom: feed.callRoom ? {
                 id: feed.callRoom.id!,
                 status: feed.callRoom.status,

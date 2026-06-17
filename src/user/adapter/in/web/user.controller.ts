@@ -5,6 +5,7 @@ import { ApiTags, ApiOperation, ApiResponse as SwaggerApiResponse, ApiBody, ApiB
 import { CreateUserRequestDto } from './dto/create-user.request.dto';
 import { UpdateUserProfileRequestDto } from './dto/update-user-profile.request.dto';
 import { CreateUserCommand } from '../../../application/ports/in/create-user.usecase';
+import { CREATE_USER_USECASE } from '../../../application/ports/in/create-user.usecase';
 import type { CreateUserUseCase } from '../../../application/ports/in/create-user.usecase';
 import { ApiResponse } from '../../../../common/dto/api-response.dto';
 import { UPDATE_USER_PROFILE_USECASE, UpdateUserProfileCommand } from '../../../application/ports/in/update-user-profile.usecase';
@@ -17,7 +18,7 @@ import type { GetUserUseCase } from '../../../application/ports/in/get-user.usec
 @Controller('users')
 export class UserController {
     constructor(
-        @Inject('CreateUserUseCase')
+        @Inject(CREATE_USER_USECASE)
         private readonly createUserUseCase: CreateUserUseCase,
 
         @Inject(UPDATE_USER_PROFILE_USECASE)
@@ -101,7 +102,7 @@ export class UserController {
             }
         }
     })
-    @UseGuards(AuthGuard('jwt')) // ADDED: JWT 가드 적용
+    @UseGuards(AuthGuard('jwt')) // JWT 가드 적용
     @Patch('profile')
     async updateProfile(
         @CurrentUser() userPayload: { userId: string },

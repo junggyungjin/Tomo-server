@@ -5,8 +5,10 @@ import { FeedPersistenceAdapter } from "./adapter/out/persistence/feed-persisten
 import { CREATE_FEED_USE_CASE } from "./application/ports/in/create-feed.usecase";
 import { GET_FEED_USE_CASE } from "./application/ports/in/get-feed.usecase";
 import { FEED_REPOSITORY_PORT } from "./application/ports/out/feed.repository.port";
+import { UserModule } from "../user/user.module";
 
 @Module({
+    imports: [UserModule],
     controllers: [FeedController],
     providers: [
         FeedService,
