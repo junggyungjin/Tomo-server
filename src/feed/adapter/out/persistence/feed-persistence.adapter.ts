@@ -11,6 +11,9 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
     async save(feed: Feed): Promise<Feed> {
         const persistenceData = FeedMapper.toPersistence(feed);
 
+        // Mapper의 반환 객체에는 callRoom이 없으므로 도메인 객체에서 직접 참조
+        const callRoomData = feed.callRoom;
+
         let savedPrismaFeed;
 
         // ID가 없으면 새로운 피드이므로 DB에 새로 생성(Create)
@@ -20,21 +23,22 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
                     // ID는 Prisma(PostgreSQL)가 알아서 uuid로 생성
                     authorId: persistenceData.authorId,
                     content: persistenceData.content,
+                    likeCount: persistenceData.likeCount,
 
-                    // Mapper에서 넘어온 callRoom 데이터가 있다면 Nested Create로 한 번에 저장
-                    ...(persistenceData.callRoom && {
+                    // 도메인 객체의 callRoom 데이터가 있다면 Nested Create로 한 번에 저장
+                    ...(callRoomData && {
                         callRoom: {
                             create: {
-                                maxParticipants: persistenceData.callRoom.maxParticipants,
-                                currentParticipants: persistenceData.callRoom.currentParticipants,
-                                status: persistenceData.callRoom.status,
+                                maxParticipants: callRoomData.maxParticipants,
+                                currentParticipants: callRoomData.currentParticipants,
+                                status: callRoomData.status,
                             },
                         },
                     }),
                 },
                 include: {
                     callRoom: true, // 생성 후 통화방 데이터까지 묶어서 반환받음
-                    author: true,
+                    author: { select: { nickname: true, handle: true } },
                 },
             });
         }
@@ -44,11 +48,13 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
                 where: { id: persistenceData.id },
                 data: {
                     content: persistenceData.content,
+                    likeCount: persistenceData.likeCount, // 도메인에서 변경된 좋아요 수 반영
+                    deletedAt: persistenceData.deletedAt, // 도메인에서 삭제 처리된 경우 반영
                     // 통화방 인원 변동 등 추가 업데이트가 필요하다면 여기에 로직 추가
                 },
                 include: {
                     callRoom: true,
-                    author: true,
+                    author: { select: { nickname: true, handle: true } }, // Mapper 타입에 맞게 최적화
                 },
             });
         }
@@ -58,11 +64,15 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
     }
 
     async findById(id: string): Promise<Feed | null> {
-        const prismaFeed = await this.prisma.feed.findUnique({
-            where: { id },
+        // findUnique는 고유키만 조건으로 받으므로, deletedAt: null 필터링을 위해 findFirst 사용
+        const prismaFeed = await this.prisma.feed.findFirst({
+            where: {
+                id,
+                deletedAt: null // 삭제하지 않은 피드만 조회
+            },
             include: {
                 callRoom: true,
-                author: true
+                author: { select: { nickname: true, handle: true } }
             },
         });
 
@@ -73,13 +83,60 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
 
     async findAll(): Promise<Feed[]> {
         const prismaFeeds = await this.prisma.feed.findMany({
+            where: { deletedAt: null }, // 삭제되지 않은 피드만 조회
             orderBy: { createdAt: 'desc' }, // 보통 피드는 최신순(내림차순)으로 정렬
             include: {
                 callRoom: true,
-                author: true
+                author: { select: { nickname: true, handle: true } }
             },
         });
 
         return prismaFeeds.map(prismaFeed => FeedMapper.toDomain(prismaFeed));
+    }
+
+    async toggleLike(userId: string, feedId: string, isLike: boolean): Promise<void> {
+        await this.prisma.$transaction(async (tx) => {
+            if (isLike) {
+                // 1. 좋아요 데이터 Upsert
+                await tx.feedLike.upsert({
+                    where: { userId_feedId: { userId, feedId } },
+                    create: { userId, feedId },
+                    update: { deletedAt: null, createdAt: new Date() },
+                });
+                // 2. 카운트 증가
+                await tx.feed.update({
+                    where: { id: feedId },
+                    data: { likeCount: { increment: 1 } },
+                });
+            } else {
+                // 1. 좋아요 데이터 Soft Delete
+                await tx.feedLike.update({
+                    where: { userId_feedId: { userId, feedId } },
+                    data: { deletedAt: new Date() },
+                });
+                // 2. 카운트 감소 (음수 방지 로직 포함)
+                await tx.feed.update({
+                    where: { id: feedId },
+                    data: {
+                        likeCount: { decrement: 1 }
+                    },
+                });
+            }
+        });
+    }
+
+    // 해당 유저가 특정 피드에 좋아요를 눌렀는지 확인
+    async checkIfUserLiked(userId: string, feedId: string): Promise<boolean> {
+        const like = await this.prisma.feedLike.findUnique({
+            where: {
+                userId_feedId: {
+                    userId,
+                    feedId,
+                },
+            }
+        });
+
+        // like 데이터가 있고(null이 아니고), 논리적 삭제(deletedAt)가 되지 않은 상태인지 확인
+        return like !== null && like.deletedAt === null;
     }
 }

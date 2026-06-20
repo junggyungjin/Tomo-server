@@ -36,8 +36,10 @@ model User {
   status      UserStatus @default(PENDING)
   createdAt   DateTime @default(now())      // 가입일 (자동 생성)
   updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?                     // 논리적 삭제 (soft Delete) 용도
   refreshTokens   RefreshToken[]
   feed        Feed[]
+  feedLikes   FeedLike[]
   @@unique([provider, providerId])
 }
 
@@ -55,11 +57,27 @@ model RefreshToken {
 model Feed {
   id         String     @id @default(uuid())
   content    String?    // 글 내용 (사진만 올릴 수도 있으므로 optional)
+  likeCount  Int        @default(0) // 좋아요 수 캐싱 
   authorId   String
   author     User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
   callRoom   CallRoom?  // 1:1 관계 (선택적 통화방)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+  deletedAt  DateTime?
+  feedLikes  FeedLike[]
+}
+
+model FeedLike {
+  id        String    @id @default(uuid())
+  userId    String
+  feedId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feed      Feed      @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  @@unique([userId, feedId]) // 동일 유저의 중복 좋아요 방지
+  @@index([feedId])          // 피드 기준으로 좋아요를 조회할 때 성능 향상
 }
 
 model CallRoom {

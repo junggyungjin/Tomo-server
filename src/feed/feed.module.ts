@@ -6,6 +6,9 @@ import { CREATE_FEED_USE_CASE } from "./application/ports/in/create-feed.usecase
 import { GET_FEED_USE_CASE } from "./application/ports/in/get-feed.usecase";
 import { FEED_REPOSITORY_PORT } from "./application/ports/out/feed.repository.port";
 import { UserModule } from "../user/user.module";
+import { LIKE_FEED_USE_CASE } from "./application/ports/in/like-feed.usecase";
+import { LikeFeedService } from "./application/services/like-feed.service";
+
 
 @Module({
     imports: [UserModule],
@@ -13,6 +16,7 @@ import { UserModule } from "../user/user.module";
     providers: [
         FeedService,
         FeedPersistenceAdapter,
+        LikeFeedService
         {
             // 1. [Outbound] DB 포트에 대한 구현체 연결
             provide: FEED_REPOSITORY_PORT,
@@ -28,6 +32,10 @@ import { UserModule } from "../user/user.module";
             provide: GET_FEED_USE_CASE,
             useExisting: FeedService
         },
+        {
+            provide: LIKE_FEED_USE_CASE,
+            useExisting: LikeFeedService,
+        }
     ],
 })
 export class FeedModule { }

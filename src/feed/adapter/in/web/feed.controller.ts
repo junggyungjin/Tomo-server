@@ -17,6 +17,7 @@ import {
     CREATE_FEED_USE_CASE,
     CreateFeedCommand,
 } from 'src/feed/application/ports/in/create-feed.usecase';
+import { LikeFeedResponseDto } from './dto/like-feed.response.dto'
 import type { CreateFeedUseCase } from 'src/feed/application/ports/in/create-feed.usecase'
 import {
     GET_FEED_USE_CASE,
@@ -25,6 +26,8 @@ import type { GetFeedUseCase } from 'src/feed/application/ports/in/get-feed.usec
 import { ApiResponse } from 'src/common/dto/api-response.dto'
 import { GET_USER_USECASE } from 'src/user/application/ports/in/get-user.usecase'
 import type { GetUserUseCase } from 'src/user/application/ports/in/get-user.usecase'
+import { LIKE_FEED_USE_CASE, LikeFeedCommand } from 'src/feed/application/ports/in/like-feed.usecase'
+import type { LikeFeedUseCase } from 'src/feed/application/ports/in/like-feed.usecase'
 
 @ApiTags('Tomo Feeds')
 @Controller('feeds')
@@ -36,6 +39,8 @@ export class FeedController {
         private readonly getFeedUseCase: GetFeedUseCase,
         @Inject(GET_USER_USECASE)
         private readonly getUserUseCase: GetUserUseCase,
+        @Inject(LIKE_FEED_USE_CASE)
+        private readonly likeFeedUseCase: LikeFeedUseCase,
     ) { }
 
     @ApiOperation({ summary: '피드 작성', description: '익명 보이스 채팅방을 포함할 수 있는 새로운 피드를 생성합니다.' })
@@ -98,5 +103,21 @@ export class FeedController {
         }
 
         return ApiResponse.OK(FeedResponseDto.from(feed));
+    }
+
+    @ApiOperation({ summary: '피드 좋아요 토글', description: '특정 피드에 좋아요를 추가하거나 취소합니다.' })
+    @ApiBearerAuth('access-token')
+    @UseGuards(AuthGuard('jwt'))
+    @SwaggerApiResponse({ status: 200, description: '좋아요 처리 성공', type: LikeFeedResponseDto })
+    @Post(':id/like')
+    async toggleLike(
+        @Param('id') feedId: string,
+        @CurrentUser() userPayload: { userId: string },
+    ) {
+        const command = new LikeFeedCommand(userPayload.userId, feedId);
+
+        const result = await this.likeFeedUseCase.execute(command);
+
+        return ApiResponse.OK(LikeFeedResponseDto.from(result));
     }
 }
