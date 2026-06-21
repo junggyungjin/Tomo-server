@@ -16,7 +16,7 @@ import { LikeFeedService } from "./application/services/like-feed.service";
     providers: [
         FeedService,
         FeedPersistenceAdapter,
-        LikeFeedService
+        LikeFeedService,
         {
             // 1. [Outbound] DB 포트에 대한 구현체 연결
             provide: FEED_REPOSITORY_PORT,
