@@ -28,6 +28,7 @@ import { GET_USER_USECASE } from 'src/user/application/ports/in/get-user.usecase
 import type { GetUserUseCase } from 'src/user/application/ports/in/get-user.usecase'
 import { LIKE_FEED_USE_CASE, LikeFeedCommand } from 'src/feed/application/ports/in/like-feed.usecase'
 import type { LikeFeedUseCase } from 'src/feed/application/ports/in/like-feed.usecase'
+import { OptionalJwtAuthGuard } from 'src/common/guards/optional-jwt-auth.guard'
 
 @ApiTags('Tomo Feeds')
 @Controller('feeds')
@@ -82,9 +83,11 @@ export class FeedController {
 
     @ApiOperation({ summary: '전체 피드 목록 조회', description: '생성된 모든 피드와 열려있는 통화방 목록을 최신순으로 조회합니다.' })
     @SwaggerApiResponse({ status: 200, description: '조회 성공', type: FeedResponseDto })
+    @ApiBearerAuth('access-token')
+    @UseGuards(OptionalJwtAuthGuard)
     @Get()
     async getFeeds(@CurrentUser() userPayload?: { userId: string }) {
-        // 방어 로직
+        // 토큰이 유효하면 userPayload.userId가 존재하고, 토큰이 없거나 만료면 undefined가 됩니다.
         const viewerId = userPayload?.userId;
 
         const feeds = await this.getFeedUseCase.getFeeds(viewerId);
@@ -96,6 +99,8 @@ export class FeedController {
 
     @ApiOperation({ summary: '특정 피드 상세 조회', description: '피드 ID를 통해 특정 피드의 상세 정보와 통화방 상태를 조회합니다.' })
     @SwaggerApiResponse({ status: 200, description: '조회 성공', type: FeedResponseDto })
+    @ApiBearerAuth('access-token')
+    @UseGuards(OptionalJwtAuthGuard)
     @Get(':id')
     async getFeedById(
         @Param('id') feedId: string,
