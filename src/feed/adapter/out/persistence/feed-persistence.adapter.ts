@@ -63,7 +63,7 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
         return FeedMapper.toDomain(savedPrismaFeed);
     }
 
-    async findById(id: string): Promise<Feed | null> {
+    async findById(id: string, viewerId?: string): Promise<Feed | null> {
         // findUnique는 고유키만 조건으로 받으므로, deletedAt: null 필터링을 위해 findFirst 사용
         const prismaFeed = await this.prisma.feed.findFirst({
             where: {
@@ -72,7 +72,19 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
             },
             include: {
                 callRoom: true,
-                author: { select: { nickname: true, handle: true } }
+                author: {
+                    select: { nickname: true, handle: true }
+                },
+                // viewerId가 전달되었을 때만, 해당 유저가 누른 좋아요 내역을 Left Join으로 함꼐 가져옴
+                ...(viewerId && {
+                    feedLikes: {
+                        where: {
+                            userId: viewerId,
+                            deletedAt: null
+                        },
+                        select: { id: true } // 존재 여부만 확인하면 되므로 id만 최소한으로 Select
+                    }
+                })
             },
         });
 
@@ -81,13 +93,23 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
         return FeedMapper.toDomain(prismaFeed);
     }
 
-    async findAll(): Promise<Feed[]> {
+    async findAll(viewerId?: string): Promise<Feed[]> {
         const prismaFeeds = await this.prisma.feed.findMany({
             where: { deletedAt: null }, // 삭제되지 않은 피드만 조회
             orderBy: { createdAt: 'desc' }, // 보통 피드는 최신순(내림차순)으로 정렬
             include: {
                 callRoom: true,
-                author: { select: { nickname: true, handle: true } }
+                author: { select: { nickname: true, handle: true } },
+                // N+1 문제 방지를 위해, 피드 목록을 가져올 때 내가 누른 좋아요도 한번에 가져옴
+                ...(viewerId && {
+                    feedLikes: {
+                        where: {
+                            userId: viewerId,
+                            deletedAt: null
+                        },
+                        select: { id: true }
+                    }
+                })
             },
         });
 

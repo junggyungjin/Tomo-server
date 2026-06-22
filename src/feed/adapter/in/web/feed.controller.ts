@@ -83,8 +83,11 @@ export class FeedController {
     @ApiOperation({ summary: '전체 피드 목록 조회', description: '생성된 모든 피드와 열려있는 통화방 목록을 최신순으로 조회합니다.' })
     @SwaggerApiResponse({ status: 200, description: '조회 성공', type: FeedResponseDto })
     @Get()
-    async getFeeds() {
-        const feeds = await this.getFeedUseCase.getFeeds();
+    async getFeeds(@CurrentUser() userPayload?: { userId: string }) {
+        // 방어 로직
+        const viewerId = userPayload?.userId;
+
+        const feeds = await this.getFeedUseCase.getFeeds(viewerId);
 
         // 배열 안에 있는 다수의 엔티티들을 map을 통해 전부 DTO로 변환
         const responseDtos = feeds.map(feed => FeedResponseDto.from(feed));
@@ -94,8 +97,12 @@ export class FeedController {
     @ApiOperation({ summary: '특정 피드 상세 조회', description: '피드 ID를 통해 특정 피드의 상세 정보와 통화방 상태를 조회합니다.' })
     @SwaggerApiResponse({ status: 200, description: '조회 성공', type: FeedResponseDto })
     @Get(':id')
-    async getFeedById(@Param('id') feedId: string) {
-        const feed = await this.getFeedUseCase.getFeedById(feedId);
+    async getFeedById(
+        @Param('id') feedId: string,
+        @CurrentUser() userPayload?: { userId: string }
+    ) {
+        const viewerId = userPayload?.userId;
+        const feed = await this.getFeedUseCase.getFeedById(feedId, viewerId);
 
         if (!feed) {
             // 프론트엔드와 맞춘 에러 응답 규격에 따라 예외 처리 (예: NotFoundException)

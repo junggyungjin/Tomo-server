@@ -7,6 +7,7 @@ import { Feed as PrismaFeed, CallRoom as PrismaCallRoom, User as PrismaUser } fr
 export type PrismaFeedWithRelations = PrismaFeed & {
     callRoom: PrismaCallRoom | null;
     author: Pick<PrismaUser, 'nickname' | 'handle'>;
+    feedLikes?: { id: string }[]; // viewerId로 조인했을 때 존재하는 좋아요 내역
 };
 
 export class FeedMapper {
@@ -24,6 +25,10 @@ export class FeedMapper {
             })
             : null
 
+        // feedLikes 배열이 존재하고 길이가 1 이상이면 좋아요를 누른 상태
+        const isLiked = prismaFeed.feedLikes !== undefined &&
+            prismaFeed.feedLikes.length > 0;
+
         // 2. 타입 에러 없이 안전하게 작성자 정보 매핑
         return Feed.restore({
             id: prismaFeed.id,
@@ -33,6 +38,7 @@ export class FeedMapper {
             authorHandle: prismaFeed.author.handle || 'Unknown',
             callRoom: callRoom,
             likeCount: prismaFeed.likeCount,
+            isLiked: isLiked, // 엔티티에 조인된 결과 전달
             createdAt: prismaFeed.createdAt,
             updatedAt: prismaFeed.updatedAt,
             deletedAt: prismaFeed.deletedAt,

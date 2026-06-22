@@ -10,6 +10,7 @@ export class Feed {
         private readonly _authorHandle: string,
         private _callRoom: CallRoom | null,
         private _likeCount: number,
+        private readonly _isLiked: boolean = false,
         private readonly _createdAt: Date,
         private _updatedAt: Date,
         private _deletedAt: Date | null,
@@ -23,6 +24,7 @@ export class Feed {
     get authorHandle(): string { return this._authorHandle; }
     get callRoom(): CallRoom | null { return this._callRoom; }
     get likeCount(): number { return this._likeCount; }
+    get isLiked(): boolean { return this._isLiked; }
     get createdAt(): Date { return this._createdAt; }
     get updatedAt(): Date { return this._updatedAt; }
     get deletedAt(): Date | null { return this._deletedAt; }
@@ -44,6 +46,7 @@ export class Feed {
             payload.authorHandle,
             payload.callRoom,
             0,
+            false,
             now,
             now,
             null,
@@ -58,6 +61,7 @@ export class Feed {
         authorHandle: string;
         callRoom: CallRoom | null;
         likeCount: number;
+        isLiked?: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
@@ -70,6 +74,7 @@ export class Feed {
             payload.authorHandle,
             payload.callRoom,
             payload.likeCount,
+            payload.isLiked ?? false,
             payload.createdAt,
             payload.updatedAt,
             payload.deletedAt

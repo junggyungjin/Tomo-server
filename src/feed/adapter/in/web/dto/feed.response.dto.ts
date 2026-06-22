@@ -53,6 +53,9 @@ export class FeedResponseDto {
     @ApiProperty({ description: '피드 좋아요 갯수' })
     readonly likeCount!: number;
 
+    @ApiProperty({ description: '요청 유저의 좋아요 여부' })
+    readonly isLiked!: boolean;
+
     @ApiProperty({ description: '작성 일시' })
     readonly createdAt!: Date;
 
@@ -68,6 +71,7 @@ export class FeedResponseDto {
         authorNickname: string,
         authorHandle: string,
         likeCount: number,
+        isLiked: boolean,
         createdAt: Date,
         content?: string | null,
         callRoom?: CallRoomResponseDto | null,
@@ -78,6 +82,7 @@ export class FeedResponseDto {
         this.authorNickname = authorNickname;
         this.authorHandle = authorHandle;
         this.likeCount = likeCount;
+        this.isLiked = isLiked;
         this.createdAt = createdAt;
         this.content = content;
         this.callRoom = callRoom;
@@ -94,6 +99,7 @@ export class FeedResponseDto {
             feed.authorNickname,
             feed.authorHandle,
             feed.likeCount,
+            feed.isLiked,
             feed.createdAt,
             feed.content,
             callRoomDto
