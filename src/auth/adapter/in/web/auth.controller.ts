@@ -9,6 +9,11 @@ import { REFRESH_TOKEN_USECASE } from "src/auth/application/ports/in/refresh-tok
 import type { RefreshTokenUseCase } from "src/auth/application/ports/in/refresh-token.usecase";
 import { RefreshTokenCommand } from "src/auth/application/ports/in/refresh-token.usecase";
 import { ApiResponse } from "src/common/dto/api-response.dto";
+import { DevLoginRequestDto } from "./dto/dev-login.request.dto";
+import { DEV_LOGIN_USECASE } from "src/auth/application/ports/in/dev-login.usecase";
+import type { DevLoginUseCase } from "src/auth/application/ports/in/dev-login.usecase";
+import { DevLoginCommand } from "src/auth/application/ports/in/dev-login.usecase";
+import { ForbiddenException } from "@nestjs/common";
 
 // Swagger 문서 카테고리화 및 라우터 설정
 @ApiTags('Auth')
@@ -20,6 +25,9 @@ export class AuthController {
 
         @Inject(REFRESH_TOKEN_USECASE)
         private readonly refreshTokenUseCase: RefreshTokenUseCase,
+
+        @Inject(DEV_LOGIN_USECASE)
+        private readonly devLoginUseCase: DevLoginUseCase,
     ) { }
 
     // Swagger 문서화 데코레이터 추가
@@ -89,6 +97,27 @@ export class AuthController {
     ) {
         const command = new RefreshTokenCommand(dto.refreshToken);
         const result = await this.refreshTokenUseCase.refresh(command);
+
+        return ApiResponse.OK(result);
+    }
+
+    @ApiOperation({ summary: '개발 환경 전용 로그인 (운영 환경 사용 불가)', description: '소셜 검증 없이 원하는 ID로 즉시 토큰을 발급받습니다.' })
+    @ApiBody({ type: DevLoginRequestDto })
+    @SwaggerApiResponse({
+        status: 200,
+        description: '가짜 로그인 성공 및 JWT 발급',
+    })
+    @HttpCode(HttpStatus.OK)
+    @Post('dev/login')
+    async devLogin(
+        @Body() dto: DevLoginRequestDto
+    ) {
+        if (process.env.NODE_ENV === 'production') {
+            throw new ForbiddenException('운영 환경에서는 사용할 수 없는 API입니다.');
+        }
+
+        const command = new DevLoginCommand(dto.providerId);
+        const result = await this.devLoginUseCase.devLogin(command);
 
         return ApiResponse.OK(result);
     }

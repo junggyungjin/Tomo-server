@@ -15,6 +15,8 @@ import { LOGIN_USECASE } from './application/ports/in/login.usecase';
 import { REFRESH_TOKEN_USECASE } from './application/ports/in/refresh-token.usecase';
 import { RefreshTokenPersistenceAdapter } from './adapter/out/persistence/refresh-token-persistence.adapter';
 import { ConfigService } from '@nestjs/config';
+import { DevLoginService } from './application/services/dev-login.service';
+import { DEV_LOGIN_USECASE } from './application/ports/in/dev-login.usecase';
 
 @Module({
     imports: [
@@ -34,6 +36,7 @@ import { ConfigService } from '@nestjs/config';
         // --- 1. 일반 프로바이더 등록 ---
         JwtStrategy, // JwtStrategy를 Provider로 등록하여 NestJS가 주입(DI)할 수 있게 함
         AuthService, // 싱글톤 객체 1회 생성
+        DevLoginService,
         // --- 2. Outbound 어댑터 연결 ---
         {
             provide: GENERATE_TOKEN_PORT,  // 인터페이스 대신 Symbol 사용
@@ -55,6 +58,10 @@ import { ConfigService } from '@nestjs/config';
         {
             provide: REFRESH_TOKEN_USECASE,
             useExisting: AuthService // 이미 만들어진 AuthService를 재사용
+        },
+        {
+            provide: DEV_LOGIN_USECASE,
+            useExisting: DevLoginService
         }
     ],
     exports: [
@@ -62,7 +69,8 @@ import { ConfigService } from '@nestjs/config';
         VERIFY_SOCIAL_TOKEN_PORT,
         MANAGE_REFRESH_TOKEN_PORT,
         LOGIN_USECASE,
-        REFRESH_TOKEN_USECASE
+        REFRESH_TOKEN_USECASE,
+        DEV_LOGIN_USECASE
     ],  // 다른 모듈에서 심볼을 통해 주입받을 수 있도록 export
 })
 export class AuthModule { }
