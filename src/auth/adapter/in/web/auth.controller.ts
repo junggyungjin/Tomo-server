@@ -1,5 +1,5 @@
-import { Controller, Post, Body, Param, Inject, HttpCode, HttpStatus } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiResponse as SwaggerApiResponse } from '@nestjs/swagger';
+import { Controller, Post, Body, Param, Inject, HttpCode, HttpStatus, UseGuards } from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiResponse as SwaggerApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { SocialLoginRequestDto } from './dto/social-login.request.dto';
 import { RefreshTokenRequestDto } from "./dto/refresh-token.request.dto";
 import { LOGIN_USECASE } from '../../../application/ports/in/login.usecase';
@@ -14,6 +14,12 @@ import { DEV_LOGIN_USECASE } from "src/auth/application/ports/in/dev-login.useca
 import type { DevLoginUseCase } from "src/auth/application/ports/in/dev-login.usecase";
 import { DevLoginCommand } from "src/auth/application/ports/in/dev-login.usecase";
 import { ForbiddenException } from "@nestjs/common";
+import { LogoutRequestDto } from "./dto/logout.request.dto";
+import { LOGOUT_USECASE } from "src/auth/application/ports/in/logout.usecase";
+import type { LogoutUseCase } from "src/auth/application/ports/in/logout.usecase";
+import { LogoutCommand } from "src/auth/application/ports/in/logout.usecase";
+import { AuthGuard } from "@nestjs/passport";
+import { CurrentUser } from "src/common/decorators/current-user.decorator";
 
 // Swagger 문서 카테고리화 및 라우터 설정
 @ApiTags('Auth')
@@ -28,6 +34,9 @@ export class AuthController {
 
         @Inject(DEV_LOGIN_USECASE)
         private readonly devLoginUseCase: DevLoginUseCase,
+
+        @Inject(LOGOUT_USECASE)
+        private readonly logoutUseCase: LogoutUseCase,
     ) { }
 
     // Swagger 문서화 데코레이터 추가
@@ -120,5 +129,25 @@ export class AuthController {
         const result = await this.devLoginUseCase.devLogin(command);
 
         return ApiResponse.OK(result);
+    }
+
+    @ApiOperation({ summary: '로그아웃', description: '기기에 저장된 리프레시 토큰을 서버에서 폐기하여 로그아웃 처리' })
+    @ApiBody({ type: LogoutRequestDto })
+    @SwaggerApiResponse({
+        status: 200,
+        description: '로그아웃 성공(리프레시 토큰 삭제 완료)'
+    })
+    @ApiBearerAuth('access-token')
+    @UseGuards(AuthGuard('jwt'))
+    @HttpCode(HttpStatus.OK)
+    @Post('logout')
+    async logout(
+        @CurrentUser() userPayload: { userId: string },
+        @Body() dto: LogoutRequestDto
+    ) {
+        const command = new LogoutCommand(userPayload.userId, dto.refreshToken);
+        await this.logoutUseCase.logout(command);
+
+        return ApiResponse.OK(null);
     }
 }

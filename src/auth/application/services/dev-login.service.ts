@@ -7,7 +7,7 @@ import { GENERATE_TOKEN_PORT } from "../ports/out/generate-token.port";
 import { GET_OR_CREATE_USER_PORT } from "../ports/out/get-or-create-user.port";
 import { MANAGE_REFRESH_TOKEN_PORT } from "../ports/out/manage-refresh-token.port";
 
-@Injectable
+@Injectable()
 export class DevLoginService implements DevLoginUseCase {
     constructor(
         @Inject(GET_OR_CREATE_USER_PORT)
