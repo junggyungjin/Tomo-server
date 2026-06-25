@@ -1,7 +1,7 @@
-import { Controller, Post, Body, Inject, Patch, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Inject, Patch, Get, UseGuards, Param } from '@nestjs/common';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiResponse as SwaggerApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse as SwaggerApiResponse, ApiBody, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { CreateUserRequestDto } from './dto/create-user.request.dto';
 import { UpdateUserProfileRequestDto } from './dto/update-user-profile.request.dto';
 import { CreateUserCommand } from '../../../application/ports/in/create-user.usecase';
@@ -12,6 +12,8 @@ import { UPDATE_USER_PROFILE_USECASE, UpdateUserProfileCommand } from '../../../
 import type { UpdateUserProfileUseCase } from '../../../application/ports/in/update-user-profile.usecase';
 import { GET_USER_USECASE } from '../../../application/ports/in/get-user.usecase';
 import type { GetUserUseCase } from '../../../application/ports/in/get-user.usecase';
+import { FOLLOW_USER_USECASE, FollowUserCommand } from 'src/user/application/ports/in/follow-user.usecase';
+import type { FollowUserUseCase } from 'src/user/application/ports/in/follow-user.usecase';
 
 // Swagger 문서 카테고리화 및 라우터 설정
 @ApiTags('Users')
@@ -26,6 +28,9 @@ export class UserController {
 
         @Inject(GET_USER_USECASE)
         private readonly getUserUseCase: GetUserUseCase,
+
+        @Inject(FOLLOW_USER_USECASE)
+        private readonly followUserUseCase: FollowUserUseCase,
     ) { }
 
     @ApiOperation({ summary: '새 사용자 생성', description: '소셜 로그인 후 신규 사용자를 생성합니다.' })
@@ -152,5 +157,37 @@ export class UserController {
         const user = await this.getUserUseCase.getUser(userPayload.userId);
 
         return ApiResponse.OK(user);
+    }
+
+    @ApiBearerAuth('access-token')
+    @ApiOperation({ summary: '유저 팔로우 토글', description: '특정 유저를 팔로우하거나, 이미 팔로우 중이라면 언팔로우합니다.' })
+    @ApiParam({ name: 'id', description: '팔로우 할 대상 유저의 ID' })
+    @SwaggerApiResponse({
+        status: 200,
+        description: '팔로우 토글 성공',
+        schema: {
+            example: {
+                success: true,
+                timestamp: '2026-06-25T10:00:00.000Z',
+                data: {
+                    isFollowing: true
+                }
+            }
+        }
+    })
+    @UseGuards(AuthGuard('jwt')) // 반드시 로그인한 유저만 호출 가능
+    @Post(':id/follow')
+    async toggleFollow(
+        @CurrentUser() userPayload: { userId: string }, // 내 ID
+        @Param('id') targetUserId: string,              // 대상 ID
+    ) {
+        const command = new FollowUserCommand(
+            userPayload.userId,
+            targetUserId
+        );
+
+        const result = await this.followUserUseCase.toggleFollow(command);
+
+        return ApiResponse.OK(result);
     }
 }

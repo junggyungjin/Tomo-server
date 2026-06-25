@@ -1,16 +1,21 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { CreateUserUseCase, CreateUserCommand } from '../in/create-user.usecase';
 import { USER_REPOSITORY_PORT } from '../out/user.repository.port';
 import type { UserRepositoryPort } from '../out/user.repository.port';
 import { User } from 'src/user/domain/user.entity';
 import { UpdateUserProfileCommand, UpdateUserProfileUseCase } from '../in/update-user-profile.usecase';
+import { FollowUserUseCase, FollowUserCommand, FollowUserResult } from '../in/follow-user.usecase';
+import type { FollowRepositoryPort } from '../out/follow.repository.port';
+import { FOLLOW_REPOSITORY_PORT } from '../out/follow.repository.port';
 
 @Injectable()
-export class UserService implements CreateUserUseCase, UpdateUserProfileUseCase {
+export class UserService implements CreateUserUseCase, UpdateUserProfileUseCase, FollowUserUseCase {
     constructor(
         @Inject(USER_REPOSITORY_PORT)
         private readonly userRepository: UserRepositoryPort,
+        @Inject(FOLLOW_REPOSITORY_PORT)
+        private readonly followRepositoryPort: FollowRepositoryPort,
     ) { }
 
     async createUser(command: CreateUserCommand): Promise<User> {
@@ -102,5 +107,26 @@ export class UserService implements CreateUserUseCase, UpdateUserProfileUseCase 
                 return handle;
             }
         }
+    }
+
+    async toggleFollow(command: FollowUserCommand): Promise<FollowUserResult> {
+        // 1. 자기 자신을 팔로우하는 것은 차단
+        if (command.followerId === command.followingId) {
+            throw new BadRequestException('자기 자신을 팔로우할 수 없습니다.')
+        }
+
+        // 2. 대상 유저 존재 여부 검증
+        const targetUser = await this.userRepository.findById(command.followingId);
+        if (!targetUser || targetUser.status === 'DELETED') {
+            throw new NotFoundException('존재하지 않거나 탈퇴한 유저입니다.');
+        }
+
+        // 3. Out-Port를 통해 팔로우 토글 처리 (방금 작성하신 강력한 어댑터 메서드 호출)
+        const isFollowing = await this.followRepositoryPort.toggleFollow(
+            command.followerId,
+            command.followingId
+        );
+
+        return { isFollowing };
     }
 }

@@ -8,6 +8,9 @@ import { UPDATE_USER_PROFILE_USECASE } from "./application/ports/in/update-user-
 import { GET_USER_USECASE } from "./application/ports/in/get-user.usecase";
 import { CREATE_USER_USECASE } from "./application/ports/in/create-user.usecase";
 import { USER_REPOSITORY_PORT } from "./application/ports/out/user.repository.port";
+import { FollowPersistenceAdapter } from "./adapter/out/persistence/follow-persistence.adapter";
+import { FOLLOW_REPOSITORY_PORT } from "./application/ports/out/follow.repository.port";
+import { FOLLOW_USER_USECASE } from "./application/ports/in/follow-user.usecase";
 
 @Module({
     controllers: [
@@ -17,6 +20,7 @@ import { USER_REPOSITORY_PORT } from "./application/ports/out/user.repository.po
     providers: [
         UserService,
         UserPersistenceAdapter,
+        FollowPersistenceAdapter,
         AuthUserFacade,
         // 2. '추상(Port)'과 '구현(Adapter/Service)'을 연결합니다.
         {
@@ -38,6 +42,14 @@ import { USER_REPOSITORY_PORT } from "./application/ports/out/user.repository.po
         {
             provide: GET_OR_CREATE_USER_PORT,
             useClass: AuthUserFacade
+        },
+        {
+            provide: FOLLOW_REPOSITORY_PORT,
+            useClass: FollowPersistenceAdapter,
+        },
+        {
+            provide: FOLLOW_USER_USECASE,
+            useExisting: UserService
         }
     ],
     exports: [GET_OR_CREATE_USER_PORT, GET_USER_USECASE]
