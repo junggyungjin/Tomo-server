@@ -73,7 +73,19 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
             include: {
                 callRoom: true,
                 author: {
-                    select: { nickname: true, handle: true }
+                    select: {
+                        nickname: true,
+                        handle: true,
+                        ...(viewerId && {
+                            followers: {
+                                where: {
+                                    followerId: viewerId,
+                                    deletedAt: null
+                                },
+                                select: { id: true }
+                            }
+                        })
+                    }
                 },
                 // viewerId가 전달되었을 때만, 해당 유저가 누른 좋아요 내역을 Left Join으로 함꼐 가져옴
                 ...(viewerId && {
@@ -99,7 +111,22 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
             orderBy: { createdAt: 'desc' }, // 보통 피드는 최신순(내림차순)으로 정렬
             include: {
                 callRoom: true,
-                author: { select: { nickname: true, handle: true } },
+                author: {
+                    select: {
+                        nickname: true,
+                        handle: true,
+                        // 피드 작성자를 팔로우하고 있는지 Left Join
+                        ...(viewerId && {
+                            followers: {
+                                where: {
+                                    followerId: viewerId,
+                                    deletedAt: null
+                                },
+                                select: { id: true }
+                            }
+                        })
+                    }
+                },
                 // N+1 문제 방지를 위해, 피드 목록을 가져올 때 내가 누른 좋아요도 한번에 가져옴
                 ...(viewerId && {
                     feedLikes: {

@@ -11,6 +11,7 @@ export class Feed {
         private _callRoom: CallRoom | null,
         private _likeCount: number,
         private readonly _isLiked: boolean = false,
+        private readonly _isAuthorFollowing: boolean = false,
         private readonly _createdAt: Date,
         private _updatedAt: Date,
         private _deletedAt: Date | null,
@@ -25,6 +26,7 @@ export class Feed {
     get callRoom(): CallRoom | null { return this._callRoom; }
     get likeCount(): number { return this._likeCount; }
     get isLiked(): boolean { return this._isLiked; }
+    get isAuthorFollowing(): boolean { return this._isAuthorFollowing; }
     get createdAt(): Date { return this._createdAt; }
     get updatedAt(): Date { return this._updatedAt; }
     get deletedAt(): Date | null { return this._deletedAt; }
@@ -47,6 +49,7 @@ export class Feed {
             payload.callRoom,
             0,
             false,
+            false,
             now,
             now,
             null,
@@ -62,6 +65,7 @@ export class Feed {
         callRoom: CallRoom | null;
         likeCount: number;
         isLiked?: boolean;
+        isAuthorFollowing?: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
@@ -75,6 +79,7 @@ export class Feed {
             payload.callRoom,
             payload.likeCount,
             payload.isLiked ?? false,
+            payload.isAuthorFollowing ?? false,
             payload.createdAt,
             payload.updatedAt,
             payload.deletedAt

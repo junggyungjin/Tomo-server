@@ -56,6 +56,9 @@ export class FeedResponseDto {
     @ApiProperty({ description: '요청 유저의 좋아요 여부' })
     readonly isLiked!: boolean;
 
+    @ApiProperty({ description: '요청 유저의 작성자 팔로우 여부' })
+    readonly isAuthorFollowing!: boolean;
+
     @ApiProperty({ description: '작성 일시' })
     readonly createdAt!: Date;
 
@@ -72,6 +75,7 @@ export class FeedResponseDto {
         authorHandle: string,
         likeCount: number,
         isLiked: boolean,
+        isAuthorFollowing: boolean,
         createdAt: Date,
         content?: string | null,
         callRoom?: CallRoomResponseDto | null,
@@ -83,6 +87,7 @@ export class FeedResponseDto {
         this.authorHandle = authorHandle;
         this.likeCount = likeCount;
         this.isLiked = isLiked;
+        this.isAuthorFollowing = isAuthorFollowing;
         this.createdAt = createdAt;
         this.content = content;
         this.callRoom = callRoom;
@@ -100,6 +105,7 @@ export class FeedResponseDto {
             feed.authorHandle,
             feed.likeCount,
             feed.isLiked,
+            feed.isAuthorFollowing,
             feed.createdAt,
             feed.content,
             callRoomDto

@@ -6,7 +6,9 @@ import { Feed as PrismaFeed, CallRoom as PrismaCallRoom, User as PrismaUser } fr
 // User 테이블에서 우리가 필요한 필드만 가져온다고 가정
 export type PrismaFeedWithRelations = PrismaFeed & {
     callRoom: PrismaCallRoom | null;
-    author: Pick<PrismaUser, 'nickname' | 'handle'>;
+    author: Pick<PrismaUser, 'nickname' | 'handle'> & {
+        followers?: { id: string }[];
+    };
     feedLikes?: { id: string }[]; // viewerId로 조인했을 때 존재하는 좋아요 내역
 };
 
@@ -29,6 +31,10 @@ export class FeedMapper {
         const isLiked = prismaFeed.feedLikes !== undefined &&
             prismaFeed.feedLikes.length > 0;
 
+        // 작성자의 팔로워 목록에 내가 있는지 확인
+        const isAuthorFollowing = prismaFeed.author.followers !== undefined &&
+            prismaFeed.author.followers.length > 0;
+
         // 2. 타입 에러 없이 안전하게 작성자 정보 매핑
         return Feed.restore({
             id: prismaFeed.id,
@@ -39,6 +45,7 @@ export class FeedMapper {
             callRoom: callRoom,
             likeCount: prismaFeed.likeCount,
             isLiked: isLiked, // 엔티티에 조인된 결과 전달
+            isAuthorFollowing: isAuthorFollowing,
             createdAt: prismaFeed.createdAt,
             updatedAt: prismaFeed.updatedAt,
             deletedAt: prismaFeed.deletedAt,
