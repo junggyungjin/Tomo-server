@@ -39,8 +39,8 @@ export class FeedService implements CreateFeedUseCase, GetFeedUseCase {
     /**
     * [Query 유스케이스] 전체 피드 목록 최신순 조회
     */
-    async getFeeds(viewerId?: string): Promise<Feed[]> {
-        return this.feedRepository.findAll(viewerId);
+    async getFeeds(viewerId?: string, filter?: 'all' | 'following'): Promise<Feed[]> {
+        return this.feedRepository.findAll(viewerId, filter);
     }
 
     /**

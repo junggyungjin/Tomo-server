@@ -105,9 +105,21 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
         return FeedMapper.toDomain(prismaFeed);
     }
 
-    async findAll(viewerId?: string): Promise<Feed[]> {
+    async findAll(viewerId?: string, filter?: 'all' | 'following'): Promise<Feed[]> {
         const prismaFeeds = await this.prisma.feed.findMany({
-            where: { deletedAt: null }, // 삭제되지 않은 피드만 조회
+            where: {
+                deletedAt: null, // 삭제되지 않은 피드만 조회
+                ...(filter === 'following' && viewerId && {
+                    author: {
+                        followers: {
+                            some: {
+                                followerId: viewerId,
+                                deletedAt: null
+                            }
+                        }
+                    }
+                }) // filter가 following이고 viewerId가 존재하는 경우에만 Prisma some 쿼리 추가
+            },
             orderBy: { createdAt: 'desc' }, // 보통 피드는 최신순(내림차순)으로 정렬
             include: {
                 callRoom: true,

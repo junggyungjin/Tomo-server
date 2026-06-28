@@ -7,9 +7,11 @@ import {
     Post,
     UseGuards,
     NotFoundException,
+    Query,
+    UnauthorizedException,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { ApiTags, ApiOperation, ApiResponse as SwaggerApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger'
+import { ApiTags, ApiOperation, ApiResponse as SwaggerApiResponse, ApiBody, ApiBearerAuth, ApiQuery } from '@nestjs/swagger'
 import { CurrentUser } from 'src/common/decorators/current-user.decorator'
 import { CreateFeedRequestDto } from './dto/create-feed.request.dto'
 import { FeedResponseDto } from './dto/feed.response.dto'
@@ -82,15 +84,23 @@ export class FeedController {
     }
 
     @ApiOperation({ summary: '전체 피드 목록 조회', description: '생성된 모든 피드와 열려있는 통화방 목록을 최신순으로 조회합니다.' })
+    @ApiQuery({ name: 'filter', required: false, enum: ['all', 'following'], description: 'all: 전체, following: 팔로잉 피드' })
     @SwaggerApiResponse({ status: 200, description: '조회 성공', type: FeedResponseDto })
     @ApiBearerAuth('access-token')
     @UseGuards(OptionalJwtAuthGuard)
     @Get()
-    async getFeeds(@CurrentUser() userPayload?: { userId: string }) {
+    async getFeeds(
+        @CurrentUser() userPayload?: { userId: string },
+        @Query('filter') filter?: 'all' | 'following',
+    ) {
         // 토큰이 유효하면 userPayload.userId가 존재하고, 토큰이 없거나 만료면 undefined가 됩니다.
         const viewerId = userPayload?.userId;
 
-        const feeds = await this.getFeedUseCase.getFeeds(viewerId);
+        if (filter === 'following' && !viewerId) {
+            throw new UnauthorizedException('팔로잉 피드를 보려면 로그인이 필요합니다.');
+        }
+
+        const feeds = await this.getFeedUseCase.getFeeds(viewerId, filter);
 
         // 배열 안에 있는 다수의 엔티티들을 map을 통해 전부 DTO로 변환
         const responseDtos = feeds.map(feed => FeedResponseDto.from(feed));
