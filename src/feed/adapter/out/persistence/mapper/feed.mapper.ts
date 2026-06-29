@@ -44,6 +44,7 @@ export class FeedMapper {
             authorHandle: prismaFeed.author.handle || 'Unknown',
             callRoom: callRoom,
             likeCount: prismaFeed.likeCount,
+            commentCount: prismaFeed.commentCount,
             isLiked: isLiked, // 엔티티에 조인된 결과 전달
             isAuthorFollowing: isAuthorFollowing,
             createdAt: prismaFeed.createdAt,
@@ -60,6 +61,7 @@ export class FeedMapper {
             id: feed.id || undefined, // Prisma에서 새 레코드 생성 시 id가 undefined여야 default(uuid())가 작동함
             content: feed.content,
             likeCount: feed.likeCount,
+            commentCount: feed.commentCount,
             authorId: feed.authorId,
             createdAt: feed.createdAt,
             updatedAt: feed.updatedAt,

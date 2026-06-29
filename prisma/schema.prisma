@@ -44,6 +44,7 @@ model User {
   feedLikes   FeedLike[]
   followings  Follow[]  @relation("follower")
   followers   Follow[]  @relation("following")
+  feedComment FeedComment[] // 내가 작성한 댓글 목록 (User 1 : N FeedComment)
   @@unique([provider, providerId])
 }
 
@@ -59,16 +60,18 @@ model RefreshToken {
 }
 
 model Feed {
-  id         String     @id @default(uuid())
-  content    String?    // 글 내용 (사진만 올릴 수도 있으므로 optional)
-  likeCount  Int        @default(0) // 좋아요 수 캐싱 
-  authorId   String
-  author     User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  callRoom   CallRoom?  // 1:1 관계 (선택적 통화방)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  deletedAt  DateTime?
-  feedLikes  FeedLike[]
+  id            String     @id @default(uuid())
+  content       String?    // 글 내용 (사진만 올릴 수도 있으므로 optional)
+  likeCount     Int        @default(0) // 좋아요 수 캐싱 
+  commentCount  Int        @default(0) 
+  authorId      String
+  author        User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  callRoom      CallRoom?  // 1:1 관계 (선택적 통화방)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deletedAt     DateTime?
+  feedComment   FeedComment[] // 이 피드에 달린 댓글 목록 (Feed 1 : N FeedComment)
+  feedLikes     FeedLike[]
 }
 
 model FeedLike {
@@ -105,4 +108,20 @@ model Follow {
   @@unique([followerId, followingId]) // 중복 팔로우 방지
   @@index([followerId])               // 조회 성능 향상을 위한 인덱스
   @@index([followingId])              // 조회 성능 향상을 위한 인덱스
+}
+
+model FeedComment {
+  id        String        @id @default(uuid())
+  content   String        @db.Text
+  parentId  String?
+  parent    FeedComment?  @relation("ReplyTo", fields: [parentId], references: [id])
+  replies   FeedComment[] @relation("ReplyTo")
+  authorId  String
+  author    User          @relation(fields: [authorId], references:[id], onDelete: Cascade)
+  feedId    String
+  feed      Feed          @relation(fields: [feedId], references:[id],  onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?   
+  @@index([feedId])
 }
