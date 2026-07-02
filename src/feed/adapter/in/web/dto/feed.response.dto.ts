@@ -53,6 +53,9 @@ export class FeedResponseDto {
     @ApiProperty({ description: '피드 좋아요 갯수' })
     readonly likeCount!: number;
 
+    @ApiProperty({ description: '피드 댓글 갯수' })
+    readonly commentCount!: number;
+
     @ApiProperty({ description: '요청 유저의 좋아요 여부' })
     readonly isLiked!: boolean;
 
@@ -74,6 +77,7 @@ export class FeedResponseDto {
         authorNickname: string,
         authorHandle: string,
         likeCount: number,
+        commentCount: number,
         isLiked: boolean,
         isAuthorFollowing: boolean,
         createdAt: Date,
@@ -86,6 +90,7 @@ export class FeedResponseDto {
         this.authorNickname = authorNickname;
         this.authorHandle = authorHandle;
         this.likeCount = likeCount;
+        this.commentCount = commentCount;
         this.isLiked = isLiked;
         this.isAuthorFollowing = isAuthorFollowing;
         this.createdAt = createdAt;
@@ -104,6 +109,7 @@ export class FeedResponseDto {
             feed.authorNickname,
             feed.authorHandle,
             feed.likeCount,
+            feed.commentCount,
             feed.isLiked,
             feed.isAuthorFollowing,
             feed.createdAt,
