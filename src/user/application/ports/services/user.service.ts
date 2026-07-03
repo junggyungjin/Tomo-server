@@ -66,7 +66,9 @@ export class UserService implements CreateUserUseCase, UpdateUserProfileUseCase,
             command.nickname,
             command.nationality,
             command.gender,
-            command.profileImageUrl
+            command.profileImageUrl,
+            command.introduction,
+            command.coverImageUrl
         );
 
         // 온보딩 과정이므로 프로필 업데이트 시 상태를 ACTIVE로 변경

@@ -28,4 +28,14 @@ export class UpdateUserProfileRequestDto {
     @IsOptional()
     @IsString()
     profileImageUrl?: string;
+
+    @ApiPropertyOptional({ description: '유저 소개글', example: '안녕하세유' })
+    @IsOptional()
+    @IsString()
+    introduction?: string;
+
+    @ApiPropertyOptional({ description: '커버 이미지 URL', example: 'https://example.com/cover.jpg' })
+    @IsOptional()
+    @IsString()
+    coverImageUrl?: string;
 }

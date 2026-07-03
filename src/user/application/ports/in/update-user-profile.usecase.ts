@@ -11,6 +11,8 @@ export class UpdateUserProfileCommand {
         public readonly nationality: string,
         public readonly gender: string,
         public readonly profileImageUrl: string,
+        public readonly introduction?: string,
+        public readonly coverImageUrl?: string,
     ) { }
 }
 

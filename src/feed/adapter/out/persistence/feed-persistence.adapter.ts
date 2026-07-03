@@ -18,28 +18,34 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
 
         // ID가 없으면 새로운 피드이므로 DB에 새로 생성(Create)
         if (!persistenceData.id) {
-            savedPrismaFeed = await this.prisma.feed.create({
-                data: {
-                    // ID는 Prisma(PostgreSQL)가 알아서 uuid로 생성
-                    authorId: persistenceData.authorId,
-                    content: persistenceData.content,
-                    likeCount: persistenceData.likeCount,
-
-                    // 도메인 객체의 callRoom 데이터가 있다면 Nested Create로 한 번에 저장
-                    ...(callRoomData && {
-                        callRoom: {
-                            create: {
-                                maxParticipants: callRoomData.maxParticipants,
-                                currentParticipants: callRoomData.currentParticipants,
-                                status: callRoomData.status,
+            // 단순 create가 아니라 $transaction을 열어서 postCount 증가를 함께 묶어줍니다!
+            savedPrismaFeed = await this.prisma.$transaction(async (tx) => {
+                const newFeed = await tx.feed.create({
+                    data: {
+                        authorId: persistenceData.authorId,
+                        content: persistenceData.content,
+                        likeCount: persistenceData.likeCount,
+                        ...(callRoomData && {
+                            callRoom: {
+                                create: {
+                                    maxParticipants: callRoomData.maxParticipants,
+                                    currentParticipants: callRoomData.currentParticipants,
+                                    status: callRoomData.status,
+                                },
                             },
-                        },
-                    }),
-                },
-                include: {
-                    callRoom: true, // 생성 후 통화방 데이터까지 묶어서 반환받음
-                    author: { select: { nickname: true, handle: true } },
-                },
+                        }),
+                    },
+                    include: {
+                        callRoom: true,
+                        author: { select: { nickname: true, handle: true } },
+                    },
+                });
+                // 방금 피드를 생성한 유저의 postCount를 1 증가시킵니다!
+                await tx.user.update({
+                    where: { id: persistenceData.authorId },
+                    data: { postCount: { increment: 1 } }
+                });
+                return newFeed;
             });
         }
         // ID가 있으면 기존 피드 수정이므로 업데이트(Update)
@@ -48,15 +54,15 @@ export class FeedPersistenceAdapter implements FeedRepositoryPort {
                 where: { id: persistenceData.id },
                 data: {
                     content: persistenceData.content,
-                    likeCount: persistenceData.likeCount, // 도메인에서 변경된 좋아요 수 반영
-                    deletedAt: persistenceData.deletedAt, // 도메인에서 삭제 처리된 경우 반영
-                    // 통화방 인원 변동 등 추가 업데이트가 필요하다면 여기에 로직 추가
+                    likeCount: persistenceData.likeCount,
+                    deletedAt: persistenceData.deletedAt,
                 },
                 include: {
                     callRoom: true,
-                    author: { select: { nickname: true, handle: true } }, // Mapper 타입에 맞게 최적화
+                    author: { select: { nickname: true, handle: true } },
                 },
             });
+            // (참고: 피드 삭제 로직이 호출될 경우 여기서 decrement: 1 을 해주면 됩니다)
         }
 
         // DB 저장이 끝난 데이터를 다시 순수 도메인 객체로 넘겨 줌

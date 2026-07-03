@@ -19,6 +19,11 @@ export class UserMapper {
             prismaUser.profileImageUrl,
             prismaUser.status as UserStatus,
             prismaUser.createdAt,
+            prismaUser.introduction,
+            prismaUser.coverImageUrl,
+            prismaUser.followerCount,
+            prismaUser.followingCount,
+            prismaUser.postCount
         );
     }
 
@@ -38,6 +43,11 @@ export class UserMapper {
             profileImageUrl: user.profileImageUrl,
             status: user.status,
             createdAt: user.createdAt,
+            introduction: user.introduction,
+            coverImageUrl: user.coverImageUrl,
+            followerCount: user.followerCount,
+            followingCount: user.followingCount,
+            postCount: user.postCount,
         };
     }
 }

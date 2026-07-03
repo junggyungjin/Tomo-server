@@ -13,6 +13,11 @@ export class User {
         public profileImageUrl: string | null,
         public readonly status: UserStatus = 'PENDING',
         public readonly createdAt: Date,
+        public introduction: string | null = null,
+        public coverImageUrl: string | null = null,
+        public readonly followerCount: number = 0,
+        public readonly followingCount: number = 0,
+        public readonly postCount: number = 0,
     ) { }
 
     public activate(): User {
@@ -27,7 +32,12 @@ export class User {
             this.gender,
             this.profileImageUrl,
             'ACTIVE',
-            this.createdAt
+            this.createdAt,
+            this.introduction,
+            this.coverImageUrl,
+            this.followerCount,
+            this.followingCount,
+            this.postCount
         )
     }
 
@@ -36,10 +46,14 @@ export class User {
         nationality: string | null,
         gender: string | null,
         profileImageUrl: string | null,
+        introduction?: string | null,
+        coverImageUrl?: string | null,
     ): void {
         if (nickname !== undefined) this.nickname = nickname;
         if (nationality !== undefined) this.nationality = nationality;
         if (gender !== undefined) this.gender = gender;
         if (profileImageUrl !== undefined) this.profileImageUrl = profileImageUrl;
+        if (introduction !== undefined) this.introduction = introduction;
+        if (coverImageUrl !== undefined) this.coverImageUrl = coverImageUrl;
     }
 }

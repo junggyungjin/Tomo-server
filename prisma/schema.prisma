@@ -33,9 +33,12 @@ model User {
   nationality String?
   gender      String?
   profileImageUrl String?
+  introduction  String? @db.Text // 길어질 수 있으므로 Text 타입
+  coverImageUrl String?
   status      UserStatus @default(PENDING)
   followerCount   Int     @default(0)       // 팔로워 수 역정규화 (프로필 조회 성능 최적화)
-  followingCount  Int     @default(0)          
+  followingCount  Int     @default(0)
+  postCount   Int   @default(0)          
   createdAt   DateTime @default(now())      // 가입일 (자동 생성)
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?                     // 논리적 삭제 (soft Delete) 용도

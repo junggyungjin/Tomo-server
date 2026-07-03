@@ -14,6 +14,7 @@ import { GET_USER_USECASE } from '../../../application/ports/in/get-user.usecase
 import type { GetUserUseCase } from '../../../application/ports/in/get-user.usecase';
 import { FOLLOW_USER_USECASE, FollowUserCommand } from 'src/user/application/ports/in/follow-user.usecase';
 import type { FollowUserUseCase } from 'src/user/application/ports/in/follow-user.usecase';
+import { UpdateUserProfileResponseDto } from './dto/update-user-profile.response.dto';
 
 // Swagger 문서 카테고리화 및 라우터 설정
 @ApiTags('Users')
@@ -120,13 +121,15 @@ export class UserController {
             request.nationality,
             request.gender || '',
             request.profileImageUrl || '',
+            request.introduction,
+            request.coverImageUrl
         );
 
         // 2. UseCase 실행
         const user = await this.updateUserProfileUseCase.updateProfile(command);
 
         // 3. 결과 반환
-        return ApiResponse.OK(user);
+        return ApiResponse.OK(UpdateUserProfileResponseDto.from(user));
     }
 
 
