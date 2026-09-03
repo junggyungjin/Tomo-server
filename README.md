@@ -1,98 +1,92 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Tomo (토모) - Server
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> **"눈치안볼래 재미있게 놀래"**
+>
+> Tomo Server는 최신 Node.js 기술 스택과 엄격한 **헥사고날 아키텍처(Hexagonal Architecture)** 및 **DDD(Domain-Driven Design)** 원칙을 준수하여 설계된 소셜 네트워킹 플랫폼의 백엔드 시스템입니다. 비즈니스 로직의 순수성을 보장하고 유지보수성을 극대화하기 위해 **Ports and Adapters** 패턴을 채택하였습니다.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Key Highlights
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Modern Tech Stack**: NestJS, TypeScript, PostgreSQL, Prisma, Socket.io.
+- **Architecture**: Hexagonal Architecture (Ports and Adapters) + Domain-Driven Design (DDD).
+- **Engineering Excellence**:
+    - DTO의 불변성(`readonly`) 및 팩토리 메서드(`static from`)를 통한 객체 생성 제어.
+    - 비즈니스 로직 유실 방지를 위한 단일 책임 원칙(SRP) 기반의 UseCase / Service 분리.
+    - `ApiResponse` 래퍼와 Swagger 데코레이터를 활용한 API 응답 및 명세 표준화.
 
-## Project setup
+---
 
-```bash
-$ npm install
-```
+## Tech Stack & Libraries
 
-## Compile and run the project
+| Category | Technology |
+| --- | --- |
+| **Language** | TypeScript |
+| **Framework** | NestJS |
+| **Architecture** | Hexagonal Architecture, Domain-Driven Design (DDD) |
+| **Database / ORM** | PostgreSQL, Prisma |
+| **Authentication** | JWT, Social OAuth2 (Kakao, Line, Google, Apple) |
+| **Real-time** | Socket.io |
+| **Documentation** | Swagger (`@nestjs/swagger`) |
 
-```bash
-# development
-$ npm run start
+---
 
-# watch mode
-$ npm run start:dev
+## Architecture & Module Strategy
 
-# production mode
-$ npm run start:prod
-```
+Tomo Server는 프레임워크나 외부 기술(DB 등)에 비즈니스 로직이 종속되지 않도록 계층 간 결합도를 낮추고 도메인을 격리했습니다.
 
-## Run tests
+### Folder Structure (Ports and Adapters)
+- **`domain/`**: 외부 의존성이 전혀 없는 순수한 비즈니스 규칙과 도메인 엔티티. 
+- **`application/`**:
+    - `ports/in/`: 클라이언트(Web/Socket)가 비즈니스 로직을 호출하기 위한 인터페이스 (UseCase).
+    - `ports/out/`: 비즈니스 로직이 외부 시스템(DB, API)과 통신하기 위한 인터페이스.
+    - `services/`: In-Port(UseCase)를 구현하며, 도메인 객체를 조율하는 실제 비즈니스 로직 캡슐화.
+- **`adapter/`**:
+    - `in/web/`: HTTP 요청을 받아 UseCase로 전달하는 Controller 계층.
+    - `out/persistence/`: Out-Port를 구현하여 Prisma 등을 통해 실제 DB와 데이터를 주고받는 계층.
 
-```bash
-# unit tests
-$ npm run test
+---
 
-# e2e tests
-$ npm run test:e2e
+## Engineering Standards (핵심 설계 원칙)
 
-# test coverage
-$ npm run test:cov
-```
+### 1. DTO & Validation Strictness
+- **Definite Assignment & Optional**: 필수 필드는 명시적 할당(`!:`), 선택 필드는 Optional(`?:`)과 `@IsOptional()`을 강제하여 타입 안전성을 확보합니다.
+- **Immutability (불변성)**: 외부에서의 임의 조작을 막기 위해 DTO 내부에 `private constructor`를 사용하고, 도메인 변환 시에는 오직 `static from(result)` 팩토리 메서드만 사용합니다. 서브 DTO에도 동일하게 적용됩니다.
 
-## Deployment
+### 2. Service & UseCase (SRP & DRY)
+- **SRP 준수**: 기능별로 UseCase 인터페이스(In-Port)와 Service 구현체를 독립된 파일(예: `like-feed.usecase.ts` / `like-feed.service.ts`)로 분리합니다.
+- **상태 기반 로직**: 비즈니스 로직 작성 시 조건 분기를 최소화(DRY)하고, 목표 상태를 도출한 후 단일 Out-Port 호출로 처리합니다.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### 3. Domain Entity Isolation
+- **Projection Data 분리**: `viewerId` 등 조회 컨텍스트에 따라 달라지는 동적 데이터(`isLiked` 등)는 도메인 내부 상태를 변경하는 `setter`를 제공하지 않습니다.
+- **Readonly 강제**: DB에서 조회될 때 단 한 번만 주입됨을 보장하기 위해, 위와 같은 컨텍스트 데이터는 `readonly` 키워드를 엄격하게 적용하여 휴먼 에러를 방지합니다.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 4. Standardized API Response
+- 모든 Controller의 반환값은 순수 데이터가 아닌, 커스텀 규격인 `ApiResponse` DTO로 감싸서 응답합니다. (예: `return ApiResponse.OK(data);`)
+- `@CurrentUser()` 데코레이터를 통해 통일된 페이로드(`{ userId: string }`) 규격을 사용합니다.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+---
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## How to Run
 
-## Resources
+1. **Prerequisites**
+    - Node.js (v18 이상 권장)
+    - PostgreSQL
+    - Android Emulator (클라이언트 연동 테스트 시)
 
-Check out a few resources that may come in handy when working with NestJS:
+2. **Environment Setup**
+    - 프로젝트 루트에 `.env` 파일을 생성하고 DB 연결 정보 및 JWT 시크릿 등을 설정합니다.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+3. **Running the Server**
+    ```bash
+    # Install dependencies
+    $ npm install
 
-## Support
+    # Prisma Client generate
+    $ npx prisma generate
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+    # Start local development server
+    $ npm run start:dev
+    ```
+    - 로컬 API 서버 주소: `http://localhost:3000` (Swagger API Docs 제공)
+    - 안드로이드 에뮬레이터 접속용 주소: `http://10.0.2.2:3000`

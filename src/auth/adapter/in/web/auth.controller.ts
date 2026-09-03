@@ -51,7 +51,6 @@ export class AuthController {
                 success: true,
                 timestamp: '2026-05-25T10:00:00.000Z',
                 data: {
-                    // FIXED: 인터페이스 구조에 맞게 완벽하게 재배치했습니다.
                     accessToken: 'eyJhbGci...',
                     refreshToken: 'eyJhbGci...',
                     user: {
